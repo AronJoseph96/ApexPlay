@@ -1,19 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const {
-  addMovie,
-  getMovieById,
-  getAllMovies
-} = require("../controllers/movieController");
-
-router.post("/add", addMovie);
-router.get("/", getAllMovies);           // ⭐ NEW
-router.get("/:id", getMovieById);
-
-module.exports = router;
-
 const multer = require("multer");
+
+const movieController = require("../controllers/movieController");
+
 const upload = multer({ dest: "uploads/" });
+
+/*MOVIES */
+
+router.post("/add", movieController.addMovie);
+router.get("/", movieController.getAllMovies);
+router.get("/:id", movieController.getMovieById);
+/*UPLOAD MOVIE*/
 
 router.post(
   "/upload",
@@ -22,5 +20,7 @@ router.post(
     { name: "banner", maxCount: 1 },
     { name: "video", maxCount: 1 }
   ]),
-  uploadMovie
+  movieController.uploadMovie
 );
+
+module.exports = router;
