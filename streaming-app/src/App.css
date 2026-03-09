@@ -1,0 +1,203 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+.App {
+  padding-top: 0px; /* try 48px if you want tighter */
+}
+
+body {
+  background: #05070d;
+}
+/* Space for fixed navbar so content doesn't hide behind it */
+
+/* =========================
+   Glass Navbar
+========================= */
+.navbar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  background: rgba(10, 14, 25, 0.55);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Nav links */
+.navbar-overlay .nav-link,
+.navbar-overlay .navbar-brand {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.navbar-overlay .nav-link:hover {
+  color: #fff !important;
+}
+
+/* Search input */
+.nav-search {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+  padding-left: 16px !important;
+}
+.nav-search::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+.nav-search:focus {
+  box-shadow: 0 0 0 0.2rem rgba(229, 9, 20, 0.25) !important;
+  border-color: rgba(229, 9, 20, 0.55) !important;
+}
+
+/* Buttons */
+.btn-danger {
+  background: linear-gradient(135deg, #e50914, #b00710);
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+}
+.btn-outline-light {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+/* =========================
+   Offcanvas (Filter panel)
+========================= */
+.offcanvas.text-bg-dark {
+  background: rgba(12, 16, 28, 0.92) !important;
+  backdrop-filter: blur(12px);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Scroll area in filter */
+.filter-scroll {
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Inputs inside filter panel */
+.offcanvas .form-control,
+.offcanvas .form-select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: #fff;
+  border-radius: 12px;
+}
+.offcanvas .form-control:focus,
+.offcanvas .form-select:focus {
+  box-shadow: 0 0 0 0.2rem rgba(229, 9, 20, 0.25);
+  border-color: rgba(229, 9, 20, 0.55);
+}
+
+/* Offcanvas backdrop blur */
+.offcanvas-backdrop.show {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+}
+
+/* =========================
+   Home Page
+========================= */
+.home-page {
+  background: radial-gradient(circle at top, #202040 0, #000 60%);
+}
+
+/* Hero section overlay background */
+.hero-section {
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.9),
+    rgba(0, 0, 0, 0.4)
+  );
+}
+
+/* Hero poster placeholder */
+.hero-poster {
+  width: 100%;
+  height: 260px;
+  background: url("https://via.placeholder.com/500x260?text=ReelStream+Hero")
+    center/cover no-repeat;
+}
+
+/* Movie tiles */
+.movie-card {
+  width: 150px;
+  height: 220px;
+  background: #333;
+  border-radius: 0.75rem;
+}
+.movie-card:hover {
+  transform: scale(1.03);
+  transition: transform 0.15s ease-out;
+}
+
+/* Hide horizontal scrollbar but allow scroll */
+.hide-scrollbar {
+  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none;  /* IE/old Edge */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;             /* Chrome/Safari/new Edge */
+}
+
+/* Container around each row to position overlay arrows */
+.row-strip {
+  position: relative;
+}
+
+/* The scroll area */
+.row-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Small arrows near title */
+.row-arrow {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+}
+.row-arrow:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+/* Big overlay arrows on left/right corners */
+.row-arrow-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 56px;
+  border: none;
+  color: #fff;
+  font-size: 44px;
+  background: linear-gradient(to right, rgba(0,0,0,0.75), rgba(0,0,0,0));
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+  z-index: 5;
+}
+
+.row-arrow-overlay.left {
+  left: 0;
+}
+
+.row-arrow-overlay.right {
+  right: 0;
+  background: linear-gradient(to left, rgba(0,0,0,0.75), rgba(0,0,0,0));
+}
+
+/* Show overlay arrows when user hovers the row */
+.row-strip:hover .row-arrow-overlay {
+  opacity: 1;
+}
