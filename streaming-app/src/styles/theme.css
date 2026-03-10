@@ -1,152 +1,254 @@
 /* ================================================
-   APEXPLAY — UNIFIED THEME SYSTEM
-   Toggle class "light-mode" on <html> for light
+   APEXPLAY — UNIFIED THEME SYSTEM v2
+   Fixes all dark/light mode visibility issues
    ================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
-/* ── CSS Variables ── */
+/* ════════════════════════════════════════
+   CSS VARIABLES
+════════════════════════════════════════ */
 :root {
-  /* DARK MODE (default) */
   --bg-base:        #0d0d12;
   --bg-surface:     #16161e;
   --bg-elevated:    #1f1f2a;
-  --bg-hover:       #26263300;
 
   --text-primary:   #ffffff;
   --text-secondary: rgba(255,255,255,0.65);
-  --text-muted:     rgba(255,255,255,0.35);
+  --text-muted:     rgba(255,255,255,0.38);
 
   --border:         rgba(255,255,255,0.08);
-  --border-hover:   rgba(255,255,255,0.18);
+  --border-hover:   rgba(255,255,255,0.20);
 
   --accent:         #e50914;
   --accent-hover:   #ff1a26;
   --accent-dim:     rgba(229,9,20,0.15);
 
-  --navbar-bg:      rgba(13,13,18,0.72);
+  --navbar-bg:      rgba(13,13,18,0.80);
   --navbar-border:  rgba(255,255,255,0.07);
+
   --input-bg:       rgba(255,255,255,0.07);
-  --input-color:    #fff;
-  --input-placeholder: rgba(255,255,255,0.40);
+  --input-color:    #ffffff;
+  --input-border:   rgba(255,255,255,0.12);
+  --input-placeholder: rgba(255,255,255,0.38);
 
   --card-bg:        #1a1a24;
   --card-shadow:    0 4px 24px rgba(0,0,0,0.5);
 
-  --offcanvas-bg:   rgba(13,13,18,0.96);
+  --offcanvas-bg:   rgba(13,13,18,0.97);
+  --row-arrow-grad: rgba(13,13,18,0.85);
 
-  --pill-bg:        rgba(255,255,255,0.08);
-  --pill-color:     rgba(255,255,255,0.70);
-
-  --scrollbar-thumb: rgba(255,255,255,0.12);
-  --row-arrow-grad: rgba(13,13,18,0.80);
+  --select-option-bg: #1f1f2a;
+  --select-option-color: #ffffff;
 }
 
 html.light-mode {
-  /* LIGHT MODE */
-  --bg-base:        #f2f2f5;
+  --bg-base:        #f0f0f5;
   --bg-surface:     #ffffff;
-  --bg-elevated:    #e8e8ef;
-  --bg-hover:       #ebebf2;
+  --bg-elevated:    #e4e4ec;
 
   --text-primary:   #0d0d12;
-  --text-secondary: rgba(13,13,18,0.65);
-  --text-muted:     rgba(13,13,18,0.38);
+  --text-secondary: rgba(13,13,18,0.68);
+  --text-muted:     rgba(13,13,18,0.42);
 
-  --border:         rgba(0,0,0,0.09);
-  --border-hover:   rgba(0,0,0,0.22);
+  --border:         rgba(0,0,0,0.10);
+  --border-hover:   rgba(0,0,0,0.24);
 
   --accent:         #e50914;
   --accent-hover:   #c2070f;
   --accent-dim:     rgba(229,9,20,0.10);
 
-  --navbar-bg:      rgba(242,242,245,0.82);
-  --navbar-border:  rgba(0,0,0,0.08);
+  --navbar-bg:      rgba(240,240,245,0.88);
+  --navbar-border:  rgba(0,0,0,0.09);
+
   --input-bg:       rgba(0,0,0,0.05);
   --input-color:    #0d0d12;
-  --input-placeholder: rgba(13,13,18,0.38);
+  --input-border:   rgba(0,0,0,0.14);
+  --input-placeholder: rgba(13,13,18,0.40);
 
   --card-bg:        #ffffff;
-  --card-shadow:    0 4px 20px rgba(0,0,0,0.10);
+  --card-shadow:    0 2px 16px rgba(0,0,0,0.08);
 
-  --offcanvas-bg:   rgba(242,242,245,0.98);
+  --offcanvas-bg:   rgba(240,240,245,0.99);
+  --row-arrow-grad: rgba(240,240,245,0.90);
 
-  --pill-bg:        rgba(0,0,0,0.07);
-  --pill-color:     rgba(13,13,18,0.65);
-
-  --scrollbar-thumb: rgba(0,0,0,0.14);
-  --row-arrow-grad: rgba(242,242,245,0.85);
+  --select-option-bg: #ffffff;
+  --select-option-color: #0d0d12;
 }
 
-/* ── Base reset ── */
+/* ════════════════════════════════════════
+   BASE RESET
+════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body {
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
   font-family: 'Outfit', sans-serif;
   background: var(--bg-base);
   color: var(--text-primary);
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: background 0.25s, color 0.25s;
 }
 
 .App {
-  padding-top: 0;
   background: var(--bg-base);
   min-height: 100vh;
-  transition: background 0.3s;
+  transition: background 0.25s;
 }
 
-/* ================================================
+/* ════════════════════════════════════════
+   OVERRIDE BOOTSTRAP HARDCODED CLASSES
+   These are the main culprits causing
+   invisible text when switching modes
+════════════════════════════════════════ */
+
+/* text-light / text-dark / text-muted */
+.text-light  { color: var(--text-primary)   !important; }
+.text-dark   { color: var(--text-primary)   !important; }
+.text-muted  { color: var(--text-muted)     !important; }
+.text-white  { color: var(--text-primary)   !important; }
+
+/* bg-dark / bg-light */
+.bg-dark  { background: var(--bg-surface)  !important; }
+.bg-light { background: var(--bg-elevated) !important; }
+
+/* Bootstrap table-dark */
+.table-dark {
+  --bs-table-bg:           var(--bg-surface)  !important;
+  --bs-table-striped-bg:   var(--bg-elevated) !important;
+  --bs-table-hover-bg:     var(--bg-elevated) !important;
+  --bs-table-color:        var(--text-primary) !important;
+  --bs-table-border-color: var(--border)      !important;
+  color: var(--text-primary) !important;
+}
+.table { color: var(--text-primary) !important; }
+.table th, .table td { color: var(--text-primary) !important; border-color: var(--border) !important; }
+
+/* Bootstrap card */
+.card {
+  background: var(--bg-surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+.card-body, .card-title, .card-text { color: var(--text-primary) !important; }
+
+/* Bootstrap form controls — global override */
+.form-control,
+.form-select {
+  background-color: var(--input-bg)     !important;
+  border-color:     var(--input-border) !important;
+  color:            var(--input-color)  !important;
+  font-family: 'Outfit', sans-serif;
+  border-radius: 10px !important;
+  transition: background 0.25s, color 0.25s, border-color 0.25s;
+}
+.form-control::placeholder { color: var(--input-placeholder) !important; }
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--input-bg) !important;
+  color: var(--input-color) !important;
+  box-shadow: 0 0 0 0.2rem rgba(229,9,20,0.20) !important;
+  border-color: rgba(229,9,20,0.50) !important;
+}
+
+/* Select option items (dropdown inside select) */
+.form-select option {
+  background: var(--select-option-bg)    !important;
+  color:      var(--select-option-color) !important;
+}
+
+/* File input */
+.form-control[type="file"] {
+  color: var(--text-secondary) !important;
+}
+.form-control[type="file"]::file-selector-button {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Labels */
+label, .form-label { color: var(--text-secondary) !important; }
+.fw-semibold, .fw-bold { color: var(--text-primary) !important; }
+
+/* Checkbox */
+.form-check-label { color: var(--text-secondary) !important; }
+.form-check-input {
+  background-color: var(--input-bg) !important;
+  border-color: var(--border-hover) !important;
+}
+.form-check-input:checked {
+  background-color: var(--accent) !important;
+  border-color:     var(--accent) !important;
+}
+
+/* Textarea */
+textarea.form-control { color: var(--input-color) !important; }
+
+/* Alert */
+.alert-danger {
+  background: rgba(229,9,20,0.12) !important;
+  border-color: rgba(229,9,20,0.30) !important;
+  color: #f87171 !important;
+}
+
+/* small tag */
+small, .small { color: var(--text-muted) !important; }
+
+/* hr */
+hr { border-color: var(--border) !important; opacity: 1 !important; }
+
+/* ════════════════════════════════════════
    NAVBAR
-   ================================================ */
+════════════════════════════════════════ */
 .navbar-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0;
+  position: fixed; top: 0; left: 0; right: 0;
   z-index: 1030;
   background: var(--navbar-bg);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--navbar-border);
-  transition: background 0.3s, border-color 0.3s;
+  transition: background 0.25s, border-color 0.25s;
 }
-
 .navbar-overlay .nav-link,
 .navbar-overlay .navbar-brand {
   color: var(--text-primary) !important;
   font-family: 'Outfit', sans-serif;
   font-weight: 500;
-  transition: color 0.2s;
 }
 .navbar-overlay .nav-link:hover { color: var(--accent) !important; }
+.navbar-overlay .navbar-brand   { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
 
-/* Brand */
-.navbar-overlay .navbar-brand {
-  font-weight: 800;
-  font-size: 20px;
-  letter-spacing: -0.5px;
-}
+/* Navbar toggler */
+.navbar-toggler { border-color: var(--border) !important; }
+.navbar-toggler-icon { filter: invert(1); }
+html.light-mode .navbar-toggler-icon { filter: invert(0) brightness(0); }
 
-/* Search input */
+/* Search */
 .nav-search {
-  background: var(--input-bg) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--input-color) !important;
+  background: var(--input-bg)     !important;
+  border:     1px solid var(--input-border) !important;
+  color:      var(--input-color)  !important;
   border-radius: 999px !important;
   padding-left: 16px !important;
   font-family: 'Outfit', sans-serif;
-  transition: background 0.3s, border-color 0.3s, color 0.3s;
+  transition: background 0.25s, color 0.25s;
 }
 .nav-search::placeholder { color: var(--input-placeholder) !important; }
 .nav-search:focus {
-  box-shadow: 0 0 0 0.2rem rgba(229,9,20,0.22) !important;
-  border-color: rgba(229,9,20,0.5) !important;
+  box-shadow: 0 0 0 0.2rem rgba(229,9,20,0.20) !important;
+  border-color: rgba(229,9,20,0.50) !important;
 }
 
 /* Buttons */
 .btn-danger {
   background: linear-gradient(135deg, #e50914, #b80710) !important;
-  border: none !important;
-  border-radius: 999px !important;
+  border: none !important; border-radius: 999px !important;
+  color: #fff !important;
   padding: 8px 18px !important;
   font-family: 'Outfit', sans-serif !important;
   font-weight: 600 !important;
@@ -155,83 +257,65 @@ html, body {
   border-radius: 999px !important;
   border: 1px solid var(--border-hover) !important;
   color: var(--text-primary) !important;
+  background: transparent !important;
   font-family: 'Outfit', sans-serif !important;
 }
-.btn-outline-light:hover {
-  background: var(--input-bg) !important;
+.btn-outline-light:hover { background: var(--input-bg) !important; }
+
+.btn-outline-secondary {
+  border-color: var(--border-hover) !important;
+  color: var(--text-secondary) !important;
+}
+.btn-outline-secondary:hover {
+  background: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
 }
 
-/* Dropdown menu */
+/* Dropdown */
 .dropdown-menu {
   background: var(--bg-surface) !important;
   border: 1px solid var(--border) !important;
   border-radius: 12px !important;
   padding: 6px !important;
+  box-shadow: var(--card-shadow) !important;
 }
 .dropdown-item {
   color: var(--text-primary) !important;
   border-radius: 8px !important;
   font-family: 'Outfit', sans-serif !important;
-  transition: background 0.15s;
 }
-.dropdown-item:hover { background: var(--bg-elevated) !important; }
+.dropdown-item:hover,
+.dropdown-item:focus { background: var(--bg-elevated) !important; }
 .dropdown-item.text-danger { color: var(--accent) !important; }
+.dropdown-divider { border-color: var(--border) !important; }
 
-/* Theme toggle button in navbar */
+/* Theme toggle */
 .theme-toggle {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 36px; height: 36px; border-radius: 50%;
   border: 1px solid var(--border-hover);
   background: var(--input-bg);
   color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  transition: background 0.2s, transform 0.2s;
   flex-shrink: 0;
 }
-.theme-toggle:hover {
-  background: var(--bg-elevated);
-  transform: rotate(20deg);
-}
+.theme-toggle:hover { background: var(--bg-elevated); transform: rotate(20deg); }
 
-/* ================================================
-   OFFCANVAS FILTER PANEL
-   ================================================ */
-.offcanvas.apx-offcanvas {
+/* ════════════════════════════════════════
+   OFFCANVAS FILTER
+════════════════════════════════════════ */
+.offcanvas,
+.offcanvas.apx-offcanvas,
+.offcanvas.text-bg-dark {
   background: var(--offcanvas-bg) !important;
-  backdrop-filter: blur(14px);
-  border-left: 1px solid var(--border) !important;
   color: var(--text-primary) !important;
+  border-left: 1px solid var(--border) !important;
 }
-.offcanvas.apx-offcanvas .offcanvas-title { color: var(--text-primary); }
-.offcanvas.apx-offcanvas .form-check-label { color: var(--text-secondary); }
-.offcanvas.apx-offcanvas .fw-semibold,
-.offcanvas.apx-offcanvas .form-label { color: var(--text-primary); }
-
-.offcanvas .form-control,
-.offcanvas .form-select {
-  background: var(--input-bg) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--input-color) !important;
-  border-radius: 10px !important;
-  font-family: 'Outfit', sans-serif;
-  transition: background 0.3s;
-}
-.offcanvas .form-control::placeholder { color: var(--input-placeholder) !important; }
-.offcanvas .form-control:focus,
-.offcanvas .form-select:focus {
-  box-shadow: 0 0 0 0.2rem rgba(229,9,20,0.22) !important;
-  border-color: rgba(229,9,20,0.5) !important;
-}
-
-/* checkbox color */
-.form-check-input:checked {
-  background-color: var(--accent) !important;
-  border-color: var(--accent) !important;
-}
+.offcanvas-title { color: var(--text-primary) !important; }
+.offcanvas-body  { color: var(--text-primary) !important; }
+.btn-close { filter: invert(1) !important; }
+html.light-mode .btn-close { filter: none !important; }
 
 .offcanvas-backdrop.show {
   opacity: 1;
@@ -239,241 +323,161 @@ html, body {
   backdrop-filter: blur(6px);
 }
 
-/* ================================================
-   HOME PAGE
-   ================================================ */
-.home-page {
-  background: var(--bg-base);
-  color: var(--text-primary);
-  min-height: 100vh;
-}
-
-/* Hero */
-.hero-section {
-  background: linear-gradient(to right, rgba(0,0,0,0.88), rgba(0,0,0,0.3));
-}
-
-/* section headings */
-.section-heading {
-  color: var(--text-primary);
-  font-family: 'Outfit', sans-serif;
-  font-weight: 700;
-  font-size: 20px;
-  letter-spacing: -0.3px;
-}
-
-/* ================================================
-   MOVIE CARDS
-   ================================================ */
+/* ════════════════════════════════════════
+   MOVIE / SERIES CARDS
+════════════════════════════════════════ */
 .movie-card {
-  width: 150px;
-  height: 220px;
   background: var(--card-bg);
   border-radius: 10px;
   overflow: hidden;
   box-shadow: var(--card-shadow);
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: transform 0.18s, box-shadow 0.18s;
 }
 .movie-card:hover {
   transform: scale(1.04);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.30);
 }
 
-/* card title text */
 .card-title-text {
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
   font-family: 'Outfit', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 13px; font-weight: 600;
 }
 .card-year-text {
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
   font-family: 'Outfit', sans-serif;
   font-size: 12px;
 }
 
-/* ================================================
-   ROW STRIP (horizontal scroll rows)
-   ================================================ */
-.hide-scrollbar          { scrollbar-width: none; -ms-overflow-style: none; }
-.hide-scrollbar::-webkit-scrollbar { display: none; }
-
-.row-strip   { position: relative; }
-.row-scroll  { scroll-behavior: smooth; }
-
-.row-arrow-overlay {
-  position: absolute;
-  top: 0; bottom: 0;
-  width: 60px;
-  border: none;
-  color: var(--text-primary);
-  font-size: 40px;
-  opacity: 0;
-  transition: opacity 0.18s;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.row-arrow-overlay.left  {
-  left: 0;
-  background: linear-gradient(to right, var(--row-arrow-grad), transparent);
-}
-.row-arrow-overlay.right {
-  right: 0;
-  background: linear-gradient(to left, var(--row-arrow-grad), transparent);
-}
-.row-strip:hover .row-arrow-overlay { opacity: 1; }
-
-/* ================================================
-   MOVIES PAGE
-   ================================================ */
-.movies-page {
-  background: var(--bg-base);
-  min-height: 100vh;
-  padding-top: 100px;
-}
-.movies-page h2 {
-  color: var(--text-primary);
-  font-family: 'Outfit', sans-serif;
-  font-weight: 700;
-}
-
-/* watchlist btn on card */
+/* Watchlist button on card */
 .watchlist-btn {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background: rgba(13,13,18,0.82);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 8px;
-  font-size: 12px;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 600;
-  padding: 5px 10px;
-  cursor: pointer;
+  position: absolute; bottom: 10px; right: 10px;
+  background: rgba(10,10,15,0.85);
+  color: #ffffff !important;
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 8px; font-size: 12px;
+  font-family: 'Outfit', sans-serif; font-weight: 600;
+  padding: 5px 10px; cursor: pointer;
   backdrop-filter: blur(6px);
   transition: background 0.18s;
 }
-.watchlist-btn:hover { background: var(--accent); border-color: var(--accent); }
+.watchlist-btn:hover { background: var(--accent) !important; border-color: var(--accent) !important; }
 
-/* ================================================
-   TV SERIES PAGE
-   ================================================ */
-.series-page {
-  background: var(--bg-base);
-  color: var(--text-primary);
-  min-height: 100vh;
-  padding-top: 80px;
+/* ════════════════════════════════════════
+   ROW STRIP
+════════════════════════════════════════ */
+.hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+.row-strip  { position: relative; }
+.row-scroll { scroll-behavior: smooth; }
+
+.row-arrow-overlay {
+  position: absolute; top: 0; bottom: 0; width: 60px;
+  border: none; color: var(--text-primary);
+  font-size: 40px; opacity: 0;
+  transition: opacity 0.18s; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
 }
+.row-arrow-overlay.left  { left: 0;  background: linear-gradient(to right, var(--row-arrow-grad), transparent); }
+.row-arrow-overlay.right { right: 0; background: linear-gradient(to left,  var(--row-arrow-grad), transparent); }
+.row-strip:hover .row-arrow-overlay { opacity: 1; }
+
+/* ════════════════════════════════════════
+   PAGES — base background + text
+════════════════════════════════════════ */
+.home-page,
+.movies-page,
+.series-page,
+.tv-page,
+.watchlist-page,
+.admin-page,
+.auth-page {
+  background: var(--bg-base) !important;
+  color: var(--text-primary) !important;
+  min-height: 100vh;
+}
+
+/* headings inside pages */
+.movies-page h2,
+.watchlist-page h2,
+.admin-page h2,
 .series-page h1,
-.series-page h4 {
-  color: var(--text-primary);
-  font-family: 'Outfit', sans-serif;
-}
-
-/* ================================================
-   WATCHLIST PAGE
-   ================================================ */
-.watchlist-page {
-  background: var(--bg-base);
-  min-height: 100vh;
-  padding-top: 100px;
-}
-.watchlist-page h2 {
-  color: var(--text-primary);
+.series-page h4,
+.tv-page h1 {
+  color: var(--text-primary) !important;
   font-family: 'Outfit', sans-serif;
   font-weight: 700;
 }
-.watchlist-page p {
-  color: var(--text-secondary);
-  font-family: 'Outfit', sans-serif;
-}
-.watchlist-page .card-title-text {
-  color: var(--text-primary);
-}
 
-/* ================================================
-   AUTH PAGES (Login / Signup)
-   ================================================ */
+/* paragraph text */
+.movies-page p,
+.watchlist-page p { color: var(--text-secondary) !important; }
+
+/* ════════════════════════════════════════
+   MOVIES PAGE
+════════════════════════════════════════ */
+.movies-page { padding-top: 100px; }
+
+/* ════════════════════════════════════════
+   AUTH PAGES
+════════════════════════════════════════ */
 .auth-page {
-  background: var(--bg-base);
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-top: 80px;
+  display: flex; align-items: center;
+  justify-content: center; padding-top: 80px;
 }
 .auth-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 36px;
-  width: 100%;
-  max-width: 400px;
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px; padding: 36px;
+  width: 100%; max-width: 400px;
   box-shadow: var(--card-shadow);
 }
-.auth-card h3 {
-  color: var(--text-primary);
-  font-family: 'Outfit', sans-serif;
-  font-weight: 700;
-}
-.auth-card .form-control {
-  background: var(--input-bg) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--input-color) !important;
-  border-radius: 10px !important;
-  font-family: 'Outfit', sans-serif;
-}
-.auth-card .form-control::placeholder { color: var(--input-placeholder) !important; }
-.auth-card .form-control:focus {
-  box-shadow: 0 0 0 0.2rem rgba(229,9,20,0.22) !important;
-  border-color: rgba(229,9,20,0.5) !important;
-}
+.auth-card h3 { color: var(--text-primary) !important; font-family: 'Outfit', sans-serif; font-weight: 700; }
 
-/* ================================================
+/* ════════════════════════════════════════
    ADMIN PAGES
-   ================================================ */
-.admin-page {
-  background: var(--bg-base);
-  min-height: 100vh;
-  padding-top: 100px;
-}
-.admin-page h2 {
+════════════════════════════════════════ */
+.admin-page { padding-top: 100px; }
+
+/* Admin dashboard card */
+.admin-page > div {
   color: var(--text-primary);
-  font-family: 'Outfit', sans-serif;
-  font-weight: 700;
 }
-.admin-page .form-control,
-.admin-page .form-select,
-.admin-page textarea {
-  background: var(--input-bg) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--input-color) !important;
-  border-radius: 10px !important;
-  font-family: 'Outfit', sans-serif;
-}
-.admin-page .form-label,
-.admin-page .form-check-label,
-.admin-page label { color: var(--text-secondary) !important; }
 
-.admin-page .table {
+/* ════════════════════════════════════════
+   WATCHLIST PAGE
+════════════════════════════════════════ */
+.watchlist-page { padding-top: 100px; }
+
+/* ════════════════════════════════════════
+   SECTION HEADINGS (home rows etc)
+════════════════════════════════════════ */
+.section-heading,
+.home-section-title {
   color: var(--text-primary) !important;
-  border-color: var(--border) !important;
-}
-.admin-page .table-dark {
-  --bs-table-bg: var(--bg-surface) !important;
-  --bs-table-striped-bg: var(--bg-elevated) !important;
-  --bs-table-color: var(--text-primary) !important;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700; font-size: 20px;
 }
 
-/* ================================================
+/* Bootstrap h4/h5 inside containers */
+h1, h2, h3, h4, h5, h6 { color: var(--text-primary); }
+
+/* ════════════════════════════════════════
    MISC UTILITIES
-   ================================================ */
-.text-apx-primary   { color: var(--text-primary) !important; }
+════════════════════════════════════════ */
+.text-apx-primary   { color: var(--text-primary)   !important; }
 .text-apx-secondary { color: var(--text-secondary) !important; }
-.text-apx-muted     { color: var(--text-muted) !important; }
-.bg-apx-base        { background: var(--bg-base) !important; }
+.text-apx-muted     { color: var(--text-muted)     !important; }
+.bg-apx-base        { background: var(--bg-base)    !important; }
 .bg-apx-surface     { background: var(--bg-surface) !important; }
+
+/* min-vh-100 bg fix */
+.min-vh-100 { background: var(--bg-base) !important; }
+
+/* container text */
+.container, .container-fluid { color: var(--text-primary); }
+
+/* py-4 / py-5 sections */
+section { color: var(--text-primary); }
