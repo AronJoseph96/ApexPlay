@@ -2,12 +2,25 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+const EyeIcon = ({ show }) => show ? (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+    <line x1="1" y1="1" x2="23" y2="23"/>
+  </svg>
+) : (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [email, setEmail] = useState("");
+  const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [show,     setShow]     = useState(false);
+  const [error,    setError]    = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,8 +60,23 @@ function Login() {
             type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
 
           <label style={{ color: "var(--text-secondary)", fontSize: "13px", fontWeight: 600 }}>Password</label>
-          <input className="form-control mb-4 mt-1" placeholder="••••••••"
-            type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          <div style={{ position: "relative" }} className="mb-4 mt-1">
+            <input className="form-control" placeholder="••••••••"
+              type={show ? "text" : "password"} required
+              value={password} onChange={(e) => setPassword(e.target.value)}
+              style={{ paddingRight: 44 }} />
+            <button type="button" onClick={() => setShow(p => !p)}
+              style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
+                background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+              <EyeIcon show={show} />
+            </button>
+          </div>
+
+          <div style={{ textAlign:"right", marginBottom:12 }}>
+            <Link to="/forgot-password" style={{ color:"var(--text-muted)", fontSize:13, textDecoration:"none" }}>
+              Forgot password?
+            </Link>
+          </div>
 
           <button className="btn btn-danger w-100" style={{ borderRadius: "10px", fontWeight: 700, padding: "11px" }}>
             Login

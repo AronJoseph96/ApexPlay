@@ -35,9 +35,9 @@ export default function Home() {
   /* ── continue watching from localStorage ── */
   useEffect(() => {
     try {
-      const user = JSON.parse(localStorage.getItem("reelstream_user"));
+      const user = JSON.parse(localStorage.getItem("apexplay_user"));
       if (!user) return;
-      const key  = `continue_${user._id}`;
+      const key  = `apexplay_continue_${user._id}`;
       setContinueWatching(JSON.parse(localStorage.getItem(key)) || []);
     } catch { /* ignore */ }
   }, []);
@@ -110,18 +110,25 @@ export default function Home() {
               <h4 className="home-section-title">Continue Watching</h4>
               <div className="d-flex gap-3 flex-nowrap overflow-auto hide-scrollbar pb-2">
                 {continueWatching.map(item => (
-                  <div key={item._id} style={{ minWidth: 150, flexShrink: 0 }}>
-                    <img
-                      src={item.poster}
-                      alt={item.title}
-                      style={{ width: 150, height: 225, objectFit: "cover", borderRadius: 10, cursor: "pointer", display: "block" }}
+                  <div key={item._id + (item.season||"")} style={{ minWidth: 150, flexShrink: 0 }}>
+                    <div style={{ position:"relative", width:150, borderRadius:10, overflow:"hidden", cursor:"pointer" }}
                       onClick={() => navigate(
-                        item.category === "Series"
-                          ? `/series/${item._id}`
+                        item.category === "Series" && item.season
+                          ? `/watch/${item._id}?season=${item.season}&ep=${item.ep}`
                           : `/watch/${item._id}`
+                      )}>
+                      <img src={item.poster} alt={item.title}
+                        style={{ width:150, height:225, objectFit:"cover", display:"block" }} />
+                      {/* progress bar */}
+                      {item.progress > 0 && (
+                        <div style={{ position:"absolute", bottom:0, left:0, right:0, height:3, background:"rgba(255,255,255,0.2)" }}>
+                          <div style={{ height:"100%", width:`${item.progress}%`, background:"#e50914", borderRadius:2 }} />
+                        </div>
                       )}
-                    />
+                      {/* play overlay on hover handled by CSS */}
+                    </div>
                     <p className="card-title-text mt-2 mb-0">{item.title}</p>
+                    {item.season && <p style={{ fontSize:11, color:"var(--text-muted)", margin:0 }}>S{item.season} E{item.ep}</p>}
                   </div>
                 ))}
               </div>

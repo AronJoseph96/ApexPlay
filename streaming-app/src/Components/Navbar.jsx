@@ -52,6 +52,9 @@ function Navbar() {
 
   const onSearchSubmit = (e) => { e.preventDefault(); applyFilters(); };
 
+  const isAdmin    = user && ["ADMIN",    "admin"].includes(user.role);
+  const isEmployee = user && ["EMPLOYEE", "employee"].includes(user.role);
+
   return (
     <>
       <nav className="navbar navbar-expand-lg navbar-overlay">
@@ -94,14 +97,13 @@ function Navbar() {
               <button className="btn btn-danger flex-shrink-0" type="submit">Search</button>
             </form>
 
-            {/* RIGHT — theme toggle + user */}
+            {/* RIGHT — theme + user */}
             <ul className="navbar-nav ms-3 align-items-center gap-2">
 
               {/* THEME TOGGLE */}
               <li className="nav-item">
                 <button className="theme-toggle" onClick={toggleTheme} title="Toggle theme">
                   {isDark ? (
-                    /* Sun icon */
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
                       stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                       <circle cx="12" cy="12" r="5"/>
@@ -115,7 +117,6 @@ function Navbar() {
                       <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
                     </svg>
                   ) : (
-                    /* Moon icon */
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                       stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -131,24 +132,50 @@ function Navbar() {
                 </>
               ) : (
                 <li className="nav-item dropdown">
-                  <a className="nav-link dropdown-toggle" href="/" role="button"
-                    data-bs-toggle="dropdown">
-                    {user.name}{user.role === "ADMIN" && " (Admin)"}
+                  <a className="nav-link dropdown-toggle d-flex align-items-center gap-2"
+                    href="/" role="button" data-bs-toggle="dropdown">
+                    {/* Avatar thumbnail */}
+                    {user.avatar ? (
+                      <img src={user.avatar} alt="avatar" style={{
+                        width: 28, height: 28, borderRadius: "50%",
+                        objectFit: "cover", border: "2px solid var(--accent)"
+                      }} />
+                    ) : (
+                      <span style={{
+                        width: 28, height: 28, borderRadius: "50%",
+                        background: "var(--accent)", display: "inline-flex",
+                        alignItems: "center", justifyContent: "center",
+                        fontWeight: 800, fontSize: 13, color: "#fff", flexShrink: 0
+                      }}>
+                        {user.name?.[0]?.toUpperCase()}
+                      </span>
+                    )}
+                    {user.name}
                   </a>
+
                   <ul className="dropdown-menu dropdown-menu-end">
-                    {user.role === "ADMIN" && (
+
+                    {/* My Profile — for ALL logged in users */}
+                    <li><Link className="dropdown-item" to="/profile"> My Profile</Link></li>
+                    <li><hr className="dropdown-divider" style={{ borderColor: "var(--border)" }} /></li>
+
+                    {/* Admin links */}
+                    {isAdmin && (
                       <>
-                        <li><Link className="dropdown-item" to="/admin/dashboard">Admin Dashboard</Link></li>
-                        <li><Link className="dropdown-item" to="/admin/users">Manage Users</Link></li>
+                        <li><Link className="dropdown-item" to="/admin/dashboard"> Admin Dashboard</Link></li>
+                        <li><Link className="dropdown-item" to="/admin/users"> Manage Users</Link></li>
                         <li><hr className="dropdown-divider" style={{ borderColor: "var(--border)" }} /></li>
                       </>
                     )}
-                    {(user.role === "EMPLOYEE" || user.role === "employee") && (
+
+                    {/* Employee link */}
+                    {isEmployee && (
                       <>
-                        <li><Link className="dropdown-item" to="/employee/dashboard">My Dashboard</Link></li>
+                        <li><Link className="dropdown-item" to="/employee/dashboard"> My Dashboard</Link></li>
                         <li><hr className="dropdown-divider" style={{ borderColor: "var(--border)" }} /></li>
                       </>
                     )}
+
                     <li>
                       <button className="dropdown-item text-danger"
                         onClick={() => { logout(); navigate("/"); }}>

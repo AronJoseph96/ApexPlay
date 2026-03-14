@@ -434,6 +434,10 @@ html.light-mode .btn-close { filter: none !important; }
   width: 100%; max-width: 400px;
   box-shadow: var(--card-shadow);
 }
+html.light-mode .auth-card {
+  border: 1px solid rgba(0,0,0,0.15) !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.14) !important;
+}
 .auth-card h3 { color: var(--text-primary) !important; font-family: 'Outfit', sans-serif; font-weight: 700; }
 
 /* ════════════════════════════════════════

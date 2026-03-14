@@ -3,40 +3,40 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState("");
+  const [user,  setUserState] = useState(null);
+  const [token, setToken]     = useState("");
 
-  // Load user from localStorage on refresh
   useEffect(() => {
-    const savedUser = localStorage.getItem("reelstream_user");
-    const savedToken = localStorage.getItem("reelstream_token");
-
+    const savedUser  = localStorage.getItem("apexplay_user");
+    const savedToken = localStorage.getItem("apexplay_token");
     if (savedUser && savedToken) {
-      setUser(JSON.parse(savedUser));
+      setUserState(JSON.parse(savedUser));
       setToken(savedToken);
     }
   }, []);
 
-  // LOGIN — Save user + token returned from backend
   const login = (userData, authToken) => {
-    setUser(userData);
+    setUserState(userData);
     setToken(authToken);
-
-    localStorage.setItem("reelstream_user", JSON.stringify(userData));
-    localStorage.setItem("reelstream_token", authToken);
+    localStorage.setItem("apexplay_user",  JSON.stringify(userData));
+    localStorage.setItem("apexplay_token", authToken);
   };
 
-  // LOGOUT — Clear everything
-  const logout = () => {
-    setUser(null);
-    setToken("");
+  // Exposed so Profile page can update user without full re-login
+  const setUser = (updated) => {
+    setUserState(updated);
+    localStorage.setItem("apexplay_user", JSON.stringify(updated));
+  };
 
-    localStorage.removeItem("reelstream_user");
-    localStorage.removeItem("reelstream_token");
+  const logout = () => {
+    setUserState(null);
+    setToken("");
+    localStorage.removeItem("apexplay_user");
+    localStorage.removeItem("apexplay_token");
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, login, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );

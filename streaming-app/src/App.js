@@ -12,6 +12,8 @@ import WatchMovie from "./Pages/WatchMovie";
 import Watchlist from "./Pages/Watchlist";
 import AdminUsers from "./Pages/AdminUsers";
 import EmployeeDashboard from "./Pages/Employeedashboard";
+import Profile from "./Pages/Profile";
+import ForgotPassword from "./Pages/ForgotPassword";
 import MovieDetails from "./Pages/MovieDetails";
 import SeriesDetails from "./Pages/SeriesDetails";
 
@@ -21,6 +23,12 @@ import { useAuth } from "./context/AuthContext";
 /* ── Theme Context ── */
 export const ThemeContext = createContext();
 export function useTheme() { return useContext(ThemeContext); }
+
+function PrivateRoute({ children }) {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" />;
+  return children;
+}
 
 function AdminRoute({ children }) {
   const { user } = useAuth();
@@ -65,6 +73,7 @@ function App() {
           {/* PUBLIC */}
           <Route path="/" element={<Home />} />
           <Route path="/login"  element={<GuestRoute><Login /></GuestRoute>} />
+          <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
           <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
           <Route path="/movies"    element={<Movies />} />
           <Route path="/series"    element={<TVSeries />} />
@@ -76,6 +85,8 @@ function App() {
 
           {/* SERIES */}
           <Route path="/series/:id" element={<SeriesDetails />} />
+
+          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
 
           {/* EMPLOYEE */}
           <Route path="/employee/dashboard" element={<EmployeeRoute><EmployeeDashboard /></EmployeeRoute>} />
