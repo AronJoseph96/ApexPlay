@@ -30,7 +30,7 @@ function GenrePills({ list, selected, onToggle }) {
 
 /* ── Tab 1: Upload Movie ── */
 function UploadMovieTab({ genresList, languages }) {
-  const blank = { title:"",description:"",releaseYear:"",duration:"",rating:"",language:"",category:"Movie" };
+  const blank = { title:"",description:"",releaseYear:"",duration:"",rating:"",ageRating:"U",language:"",category:"Movie" };
   const [form,F]           = useState(blank);
   const [genres,G]         = useState([]);
   const [poster,setPoster] = useState(null);
@@ -63,6 +63,8 @@ function UploadMovieTab({ genresList, languages }) {
         <div className="col-md-6"><input required placeholder="Title *" className="form-control" value={form.title} onChange={e=>F({...form,title:e.target.value})} /></div>
         <div className="col-md-3"><input type="number" placeholder="Year" min="1900" max="2030" className="form-control" value={form.releaseYear} onChange={e=>F({...form,releaseYear:e.target.value})} /></div>
         <div className="col-md-3"><input type="number" step="0.1" placeholder="Rating" min="0" max="10" className="form-control" value={form.rating} onChange={e=>F({...form,rating:e.target.value})} /></div>
+        <div className="col-md-3"><select className="form-select" value={form.ageRating||"U"} onChange={e=>F({...form,ageRating:e.target.value})}><option value="U">U</option><option value="U/A 7+">U/A 7+</option>
+          <option value="U/A 13+">U/A 13+</option><option value="U/A 16+">U/A 16+</option><option value="A">A (Adult)</option><option value="A">R (Restricted)</option></select></div>
         <div className="col-12"><textarea rows="3" placeholder="Description" className="form-control" value={form.description} onChange={e=>F({...form,description:e.target.value})} /></div>
         <div className="col-md-4"><input placeholder='Duration e.g. "2h 15m"' className="form-control" value={form.duration} onChange={e=>F({...form,duration:e.target.value})} /></div>
         <div className="col-md-4">
@@ -100,7 +102,7 @@ function UploadMovieTab({ genresList, languages }) {
 
 /* ── Tab 2: Create Series ── */
 function CreateSeriesTab({ genresList, languages }) {
-  const blank = { title:"",description:"",releaseYear:"",rating:"",language:"",trailerUrl:"" };
+  const blank = { title:"",description:"",releaseYear:"",rating:"",ageRating:"U",language:"",trailerUrl:"" };
   const [form,F]           = useState(blank);
   const [genres,G]         = useState([]);
   const [poster,setPoster] = useState(null);
@@ -132,6 +134,7 @@ function CreateSeriesTab({ genresList, languages }) {
         <div className="col-md-6"><input required placeholder="Series Title *" className="form-control" value={form.title} onChange={e=>F({...form,title:e.target.value})} /></div>
         <div className="col-md-3"><input type="number" placeholder="Year" min="1900" max="2030" className="form-control" value={form.releaseYear} onChange={e=>F({...form,releaseYear:e.target.value})} /></div>
         <div className="col-md-3"><input type="number" step="0.1" placeholder="Rating" className="form-control" value={form.rating} onChange={e=>F({...form,rating:e.target.value})} /></div>
+        <div className="col-md-3"><select className="form-select" value={form.ageRating||"U"} onChange={e=>F({...form,ageRating:e.target.value})}><option value="U">U</option><option value="U/A 7+">U/A 7+</option><option value="U/A 13+">U/A 13+</option><option value="U/A 16+">U/A 16+</option><option value="A">A (Adult)</option></select></div>
         <div className="col-12"><textarea rows="3" placeholder="Description" className="form-control" value={form.description} onChange={e=>F({...form,description:e.target.value})} /></div>
         <div className="col-md-6">
           <select className="form-select" value={form.language} onChange={e=>F({...form,language:e.target.value})}>
@@ -297,7 +300,7 @@ function ManageTab({ genresList, languages }) {
 
   const openEdit = m => {
     setEdit(m);
-    setEF({title:m.title,description:m.description||"",releaseYear:m.releaseYear||"",duration:m.duration||"",rating:m.rating||"",language:m.language||"",trailerUrl:m.trailerUrl||""});
+    setEF({title:m.title,description:m.description||"",releaseYear:m.releaseYear||"",duration:m.duration||"",rating:m.rating||"",ageRating:m.ageRating||"U",language:m.language||"",trailerUrl:m.trailerUrl||""});
     setEG(m.genres||[]); setEP(null); setEB(null); setMsg("");
   };
 
@@ -368,6 +371,7 @@ function ManageTab({ genresList, languages }) {
               <div className="col-md-4"><input type="number" placeholder="Year" className="form-control" value={editForm.releaseYear} onChange={e=>setEF({...editForm,releaseYear:e.target.value})} /></div>
               <div className="col-12"><textarea rows="3" placeholder="Description" className="form-control" value={editForm.description} onChange={e=>setEF({...editForm,description:e.target.value})} /></div>
               <div className="col-md-4"><input type="number" step="0.1" placeholder="Rating" className="form-control" value={editForm.rating} onChange={e=>setEF({...editForm,rating:e.target.value})} /></div>
+              <div className="col-md-4"><select className="form-select" value={editForm.ageRating||"U"} onChange={e=>setEF({...editForm,ageRating:e.target.value})}><option value="U">U</option><option value="U/A 7+">U/A 7+</option><option value="U/A 13+">U/A 13+</option><option value="U/A 16+">U/A 16+</option><option value="A">A (Adult)</option><option value="R">R (Restricted)</option></select></div>
               <div className="col-md-4"><input placeholder="Duration" className="form-control" value={editForm.duration} onChange={e=>setEF({...editForm,duration:e.target.value})} /></div>
               <div className="col-md-4">
                 <select className="form-select" value={editForm.language} onChange={e=>setEF({...editForm,language:e.target.value})}>

@@ -5,8 +5,8 @@ import { useAuth } from "../context/AuthContext";
 const API = "http://localhost:5000";
 
 export default function CollectionModal({ movie, onClose }) {
-  const { user }   = useAuth();
-  const navigate   = useNavigate();
+  const { user, activeProfile } = useAuth();
+  const navigate = useNavigate();
 
   const [collections, setCollections] = useState([]);
   const [loading,     setLoading]     = useState(true);
@@ -14,20 +14,25 @@ export default function CollectionModal({ movie, onClose }) {
   const [creating,    setCreating]    = useState(false);
   const [feedback,    setFeedback]    = useState({});
 
+  // Build API base using active profile
+  const colBase = user && activeProfile
+    ? `${API}/users/${user._id}/profiles/${activeProfile._id}/collections`
+    : null;
+
   useEffect(() => {
-    if (!user) { setLoading(false); return; }
-    fetch(`${API}/users/${user._id}/collections`)
+    if (!user || !activeProfile) { setLoading(false); return; }
+    fetch(colBase)
       .then(r => r.json())
       .then(data => { if (Array.isArray(data)) setCollections(data); })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [user]);
+  }, [user, activeProfile]);
 
   const handleBackdrop = e => { if (e.target === e.currentTarget) onClose(); };
 
   const handleAdd = async colId => {
     try {
-      const res  = await fetch(`${API}/users/${user._id}/collections/${colId}/movies`, {
+      const res  = await fetch(`${colBase}/${colId}/movies`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ movieId: movie._id }),
@@ -48,7 +53,7 @@ export default function CollectionModal({ movie, onClose }) {
     if (!newName.trim()) return;
     setCreating(true);
     try {
-      const res  = await fetch(`${API}/users/${user._id}/collections`, {
+      const res  = await fetch(colBase, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName.trim() }),
@@ -84,12 +89,16 @@ export default function CollectionModal({ movie, onClose }) {
         color:"var(--text-primary)",fontFamily:"Outfit",
         boxShadow:"0 20px 60px rgba(0,0,0,0.6)"
       }}>
-
         {/* Header */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
           <div>
             <h5 style={{margin:0,fontWeight:700}}>Add to Collection</h5>
             <p style={{margin:0,fontSize:13,color:"var(--text-muted)"}}>{movie.title}</p>
+            {activeProfile && (
+              <p style={{margin:"2px 0 0",fontSize:12,color:"var(--accent)"}}>
+                Profile: {activeProfile.name}
+              </p>
+            )}
           </div>
           <button onClick={onClose} style={{
             background:"var(--bg-elevated)",border:"none",borderRadius:"50%",
@@ -98,7 +107,6 @@ export default function CollectionModal({ movie, onClose }) {
           }}>✕</button>
         </div>
 
-        {/* Not logged in */}
         {!user ? (
           <div style={{textAlign:"center",padding:"16px 0"}}>
             <p style={{color:"var(--text-muted)",marginBottom:16}}>Please log in to save to collections.</p>
@@ -107,11 +115,18 @@ export default function CollectionModal({ movie, onClose }) {
               Go to Login
             </button>
           </div>
+        ) : !activeProfile ? (
+          <div style={{textAlign:"center",padding:"16px 0"}}>
+            <p style={{color:"var(--text-muted)",marginBottom:16}}>Select a profile first to save to collections.</p>
+            <button className="btn btn-danger w-100" onClick={()=>{onClose();navigate("/profiles");}}
+              style={{borderRadius:10,fontFamily:"Outfit",fontWeight:600}}>
+              Select Profile
+            </button>
+          </div>
         ) : loading ? (
           <div className="text-center py-3"><div className="spinner-border spinner-border-sm text-danger"/></div>
         ) : (
           <>
-            {/* Collections list */}
             {collections.length === 0 ? (
               <p style={{color:"var(--text-muted)",fontSize:14,textAlign:"center",marginBottom:16}}>
                 No collections yet. Create one below.
@@ -154,8 +169,6 @@ export default function CollectionModal({ movie, onClose }) {
                 })}
               </div>
             )}
-
-            {/* Create new */}
             <div style={{borderTop:"1px solid var(--border)",paddingTop:16}}>
               <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:8}}>Create a new collection:</p>
               <div style={{display:"flex",gap:8}}>

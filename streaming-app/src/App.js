@@ -14,6 +14,7 @@ import AdminUsers from "./Pages/AdminUsers";
 import EmployeeDashboard from "./Pages/Employeedashboard";
 import Profile from "./Pages/Profile";
 import ForgotPassword from "./Pages/ForgotPassword";
+import ProfileSelector from "./Pages/ProfileSelector";
 import MovieDetails from "./Pages/MovieDetails";
 import SeriesDetails from "./Pages/SeriesDetails";
 
@@ -23,6 +24,13 @@ import { useAuth } from "./context/AuthContext";
 /* ── Theme Context ── */
 export const ThemeContext = createContext();
 export function useTheme() { return useContext(ThemeContext); }
+
+function ProfileRoute({ children }) {
+  const { user, activeProfile } = useAuth();
+  if (!user) return <Navigate to="/login" />;
+  if (!activeProfile) return <Navigate to="/profiles" />;
+  return children;
+}
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -86,6 +94,7 @@ function App() {
           {/* SERIES */}
           <Route path="/series/:id" element={<SeriesDetails />} />
 
+          <Route path="/profiles" element={<ProfileSelector />} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
 
           {/* EMPLOYEE */}

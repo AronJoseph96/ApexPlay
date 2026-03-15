@@ -1,14 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 const API = "http://localhost:5000";
 
-/* ── get user from localStorage ── */
-function useCurrentUser() {
-  try { return { user: JSON.parse(localStorage.getItem("apexplay_user")) }; }
-  catch { return { user: null }; }
-}
+
 
 /* ══════════════════════════════════════════════════════════
    MAIN COMPONENT
@@ -28,7 +25,7 @@ export default function WatchMovie() {
   const [error,    setError]    = useState("");
 
   const videoRef    = useRef();
-  const { user }    = useCurrentUser();
+  const { user, activeProfile } = useAuth();
   const continueKey = user ? `apexplay_continue_${user._id}` : null;
   // unique key per movie/episode for resume
   const progressKey = user
@@ -41,6 +38,19 @@ export default function WatchMovie() {
     axios.get(`${API}/movies/${id}`)
       .then(({ data }) => {
         setContent(data);
+
+        // ── Age rating check ──
+        if (activeProfile) {
+          const ORDER = ["U", "U/A 7+", "U/A 13+", "U/A 16+", "A", "R"];
+          const contentIdx = ORDER.indexOf(data.ageRating || "U");
+          const profileIdx = ORDER.indexOf(activeProfile.ageRating || "A");
+          if (contentIdx > profileIdx) {
+            setError(`This content is rated "${data.ageRating}" and is restricted for the "${activeProfile.name}" profile.`);
+            setLoading(false);
+            return;
+          }
+        }
+
         if (data.category === "Series" && seasonParam && epParam) {
           const season  = data.seasons?.find(s => s.seasonNumber === seasonParam);
           const episode = season?.episodes?.find(e => e.episodeNumber === epParam);
@@ -89,8 +99,26 @@ export default function WatchMovie() {
       localStorage.setItem(continueKey, JSON.stringify(list));
     };
     const interval = setInterval(save, 5000);
-    return () => clearInterval(interval);
-  }, [content, continueKey, progressKey, title, seasonParam, epParam]);
+
+    // Screen time — update every 5 mins
+    const screenTimeInterval = setInterval(async () => {
+      if (activeProfile && user && activeProfile.isKids) {
+        try {
+          const res = await fetch(`${API}/users/${user._id}/profiles/${activeProfile._id}/screentime`, {
+            method: "PUT", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ minutesWatched: 5 })
+          });
+          const data = await res.json();
+          if (data.limitReached) {
+            alert(`⏱ Screen time limit reached for ${activeProfile.name}!`);
+            window.location.href = "/profiles";
+          }
+        } catch {}
+      }
+    }, 5 * 60 * 1000); // every 5 minutes
+
+    return () => { clearInterval(interval); clearInterval(screenTimeInterval); };
+  }, [content, continueKey, progressKey, title, seasonParam, epParam, activeProfile, user]);
 
   if (loading) return (
     <div style={{ height:"100vh", background:"#000", display:"flex", alignItems:"center", justifyContent:"center" }}>

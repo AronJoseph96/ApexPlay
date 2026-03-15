@@ -5,7 +5,7 @@ import { useTheme } from "../App";
 
 function Navbar() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, activeProfile } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   const [q, setQ] = useState("");
@@ -134,9 +134,9 @@ function Navbar() {
                 <li className="nav-item dropdown">
                   <a className="nav-link dropdown-toggle d-flex align-items-center gap-2"
                     href="/" role="button" data-bs-toggle="dropdown">
-                    {/* Avatar thumbnail */}
-                    {user.avatar ? (
-                      <img src={user.avatar} alt="avatar" style={{
+                    {/* Show active profile avatar or user avatar */}
+                    {(activeProfile?.avatar || user.avatar) ? (
+                      <img src={activeProfile?.avatar || user.avatar} alt="avatar" style={{
                         width: 28, height: 28, borderRadius: "50%",
                         objectFit: "cover", border: "2px solid var(--accent)"
                       }} />
@@ -150,13 +150,15 @@ function Navbar() {
                         {user.name?.[0]?.toUpperCase()}
                       </span>
                     )}
-                    {user.name}
+                    {activeProfile ? activeProfile.name : user.name}
                   </a>
 
                   <ul className="dropdown-menu dropdown-menu-end">
 
-                    {/* My Profile — for ALL logged in users */}
-                    <li><Link className="dropdown-item" to="/profile"> My Profile</Link></li>
+                    {/* Active profile + switch */}
+                    {activeProfile && <li><span className="dropdown-item disabled" style={{fontSize:12,opacity:0.6}}>Profile: {activeProfile.name}</span></li>}
+                    <li><Link className="dropdown-item" to="/profiles"> Switch Profile</Link></li>
+                    <li><Link className="dropdown-item" to="/profile"> My Account</Link></li>
                     <li><hr className="dropdown-divider" style={{ borderColor: "var(--border)" }} /></li>
 
                     {/* Admin links */}

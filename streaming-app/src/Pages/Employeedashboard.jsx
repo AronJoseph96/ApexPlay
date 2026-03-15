@@ -17,7 +17,7 @@ export default function EmployeeDashboard() {
   const [selectedGenres, setSelectedGenres] = useState([]);
 
   // ── movie form ──
-  const [movieForm, setMovieForm] = useState({ title:"", description:"", releaseYear:"", duration:"", rating:"", category:"Movie" });
+  const [movieForm, setMovieForm] = useState({ title:"", description:"", releaseYear:"", duration:"", rating:"", ageRating:"U", category:"Movie" });
   const [moviePoster,  setMoviePoster]  = useState(null);
   const [movieBanner,  setMovieBanner]  = useState(null);
   const [movieVideo,   setMovieVideo]   = useState(null);
@@ -25,7 +25,7 @@ export default function EmployeeDashboard() {
   const [bannerPrev,   setBannerPrev]   = useState(null);
 
   // ── series form ──
-  const [seriesForm,   setSeriesForm]   = useState({ title:"", description:"", releaseYear:"", duration:"", rating:"" });
+  const [seriesForm,   setSeriesForm]   = useState({ title:"", description:"", releaseYear:"", duration:"", rating:"", ageRating:"U" });
   const [seriesPoster, setSeriesPoster] = useState(null);
   const [seriesBanner, setSeriesBanner] = useState(null);
   const [seriesPosterPrev, setSeriesPosterPrev] = useState(null);
@@ -87,7 +87,7 @@ export default function EmployeeDashboard() {
     try {
       await axios.post(`${API}/movies/upload/movie`, data);
       alert("Movie uploaded!");
-      setMovieForm({ title:"", description:"", releaseYear:"", duration:"", rating:"", category:"Movie" });
+      setMovieForm({ title:"", description:"", releaseYear:"", duration:"", rating:"", ageRating:"U", category:"Movie" });
       setSelectedGenres([]); setMoviePoster(null); setMovieBanner(null); setMovieVideo(null);
       setPosterPrev(null); setBannerPrev(null);
     } catch { alert("Upload failed"); }
@@ -106,7 +106,7 @@ export default function EmployeeDashboard() {
     try {
       await axios.post(`${API}/movies/upload/series`, data);
       alert("Series created!");
-      setSeriesForm({ title:"", description:"", releaseYear:"", duration:"", rating:"" });
+      setSeriesForm({ title:"", description:"", releaseYear:"", duration:"", rating:"", ageRating:"U" });
       setSelectedGenres([]); setSeriesPoster(null); setSeriesBanner(null);
       setSeriesPosterPrev(null); setSeriesBannerPrev(null);
     } catch { alert("Series creation failed"); }
@@ -233,6 +233,14 @@ export default function EmployeeDashboard() {
               <div>
                 <label style={labelStyle}>Rating</label>
                 <input style={inputStyle} type="number" step="0.1" min="0" max="10" placeholder="7.5" value={movieForm.rating} onChange={e=>setMovieForm({...movieForm,rating:e.target.value})} />
+                <label style={labelStyle}>Age Rating</label>
+                <select style={inputStyle} value={movieForm.ageRating||"U"} onChange={e=>setMovieForm({...movieForm,ageRating:e.target.value})}>
+                  <option value="U">U — Universal</option>
+                  <option value="U/A 7+">U/A 7+</option>
+                  <option value="U/A 13+">U/A 13+</option>
+                  <option value="U/A 16+">U/A 16+</option>
+                  <option value="A">A — Adults Only</option>
+                </select>
               </div>
             </div>
 
@@ -306,6 +314,14 @@ export default function EmployeeDashboard() {
               <div>
                 <label style={labelStyle}>Rating</label>
                 <input style={inputStyle} type="number" step="0.1" min="0" max="10" placeholder="8.2" value={seriesForm.rating} onChange={e=>setSeriesForm({...seriesForm,rating:e.target.value})} />
+                <label style={labelStyle}>Age Rating</label>
+                <select style={inputStyle} value={seriesForm.ageRating||"U"} onChange={e=>setSeriesForm({...seriesForm,ageRating:e.target.value})}>
+                  <option value="U">U — Universal</option>
+                  <option value="U/A 7+">U/A 7+</option>
+                  <option value="U/A 13+">U/A 13+</option>
+                  <option value="U/A 16+">U/A 16+</option>
+                  <option value="A">A — Adults Only</option>
+                </select>
               </div>
             </div>
             <div style={{ marginBottom:14 }}>

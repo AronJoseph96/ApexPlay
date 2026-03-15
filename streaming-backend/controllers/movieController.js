@@ -38,7 +38,7 @@ exports.uploadMovie = async (req, res) => {
     if (!req.files?.poster || !req.files?.banner || !req.files?.video)
       return res.status(400).json({ error: "poster, banner and video are required" });
 
-    const { title, description, releaseYear, duration, rating, genres, language, category } = req.body;
+    const { title, description, releaseYear, duration, rating, ageRating, genres, language, category } = req.body;
     const [posterUp, bannerUp, videoUp] = await Promise.all([
       uploadToCloudinary(req.files.poster[0].path, { folder: "posters" }),
       uploadToCloudinary(req.files.banner[0].path, { folder: "banners" }),
@@ -50,6 +50,7 @@ exports.uploadMovie = async (req, res) => {
       poster: posterUp.secure_url, banner: bannerUp.secure_url,
       videoUrl: videoUp.secure_url, trailerUrl: videoUp.secure_url,
       releaseYear: Number(releaseYear), duration, rating: Number(rating),
+      ageRating: ageRating || "U",
       genres: genres ? JSON.parse(genres) : [],
       language, category: category || "Movie", seasons: [],
     });
@@ -62,7 +63,7 @@ exports.uploadSeries = async (req, res) => {
     if (!req.files?.poster || !req.files?.banner)
       return res.status(400).json({ error: "poster and banner are required" });
 
-    const { title, description, releaseYear, rating, genres, language, trailerUrl } = req.body;
+    const { title, description, releaseYear, rating, ageRating, genres, language, trailerUrl } = req.body;
     const [posterUp, bannerUp] = await Promise.all([
       uploadToCloudinary(req.files.poster[0].path, { folder: "posters" }),
       uploadToCloudinary(req.files.banner[0].path, { folder: "banners" }),
@@ -73,6 +74,7 @@ exports.uploadSeries = async (req, res) => {
       poster: posterUp.secure_url, banner: bannerUp.secure_url,
       trailerUrl: trailerUrl || "",
       releaseYear: Number(releaseYear), rating: Number(rating),
+      ageRating: ageRating || "U",
       genres: genres ? JSON.parse(genres) : [],
       language, category: "Series", seasons: [],
     });
@@ -85,7 +87,7 @@ exports.updateMovie = async (req, res) => {
     const movie = await Movie.findById(req.params.id);
     if (!movie) return res.status(404).json({ error: "Not found" });
 
-    const { title, description, releaseYear, duration, rating, genres, language, trailerUrl } = req.body;
+    const { title, description, releaseYear, duration, rating, ageRating, genres, language, trailerUrl } = req.body;
     if (title)       movie.title       = title;
     if (description !== undefined) movie.description = description;
     if (releaseYear) movie.releaseYear = Number(releaseYear);
@@ -93,6 +95,7 @@ exports.updateMovie = async (req, res) => {
     if (rating)      movie.rating      = Number(rating);
     if (language)    movie.language    = language;
     if (trailerUrl !== undefined) movie.trailerUrl = trailerUrl;
+    if (ageRating)   movie.ageRating   = ageRating;
     if (genres)      movie.genres      = JSON.parse(genres);
 
     if (req.files?.poster) {

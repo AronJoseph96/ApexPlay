@@ -13,10 +13,21 @@ const EyeIcon = ({ show }) => show ? (
   </svg>
 );
 
+// Map age to age rating
+const ageToRating = (age) => {
+  const n = parseInt(age);
+  if (n < 7)  return "U";
+  if (n < 13) return "U/A 7+";
+  if (n < 16) return "U/A 13+";
+  if (n < 18) return "U/A 16+";
+  return "A";
+};
+
 function Signup() {
   const navigate = useNavigate();
   const [name,     setName]     = useState("");
   const [email,    setEmail]    = useState("");
+  const [age,      setAge]      = useState("");
   const [password, setPassword] = useState("");
   const [confirm,  setConfirm]  = useState("");
   const [error,    setError]    = useState("");
@@ -32,13 +43,15 @@ function Signup() {
     setError("");
     if (!name.trim())         return setError("Username is required");
     if (!email.trim())        return setError("Email is required");
+    if (!age || isNaN(age) || age < 1 || age > 120)
+                              return setError("Enter a valid age");
     if (password !== confirm) return setError("Passwords do not match");
     if (!isStrong(password))  return setError("Password must be 8+ chars with upper, lower, number & symbol");
     try {
       const res = await fetch("http://localhost:5000/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, age: parseInt(age), password }),
       });
       const data = await res.json();
       if (!res.ok) return setError(data.message || "Signup failed");
@@ -48,6 +61,8 @@ function Signup() {
       setError("Server error. Please try again.");
     }
   };
+
+  const rating = age ? ageToRating(age) : null;
 
   return (
     <div className="auth-page">
@@ -64,25 +79,49 @@ function Signup() {
         )}
 
         <form onSubmit={handleSubmit}>
+          {/* Username */}
           <div className="mb-3">
             <label style={{ color: "var(--text-secondary)", fontSize: "13px", fontWeight: 600 }}>Username</label>
             <input className="form-control mt-1" placeholder="Your name"
               type="text" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
 
+          {/* Email */}
           <div className="mb-3">
             <label style={{ color: "var(--text-secondary)", fontSize: "13px", fontWeight: 600 }}>Email</label>
             <input className="form-control mt-1" placeholder="you@example.com"
               type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
 
+          {/* Age */}
+          <div className="mb-3">
+            <label style={{ color: "var(--text-secondary)", fontSize: "13px", fontWeight: 600 }}>Your Age</label>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }} className="mt-1">
+              <input className="form-control" placeholder="e.g. 25" type="number"
+                min={1} max={120} value={age} onChange={(e) => setAge(e.target.value)}
+                style={{ maxWidth: 120 }} />
+              {rating && (
+                <span style={{
+                  background: "rgba(229,9,20,0.12)", color: "var(--accent)",
+                  border: "1px solid rgba(229,9,20,0.3)", borderRadius: 8,
+                  padding: "4px 12px", fontSize: 13, fontWeight: 700
+                }}>
+                  {rating} profile
+                </span>
+              )}
+            </div>
+            <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "4px 0 0" }}>
+              This sets what content your profile can access.
+            </p>
+          </div>
+
+          {/* Password */}
           <div className="mb-3">
             <label style={{ color: "var(--text-secondary)", fontSize: "13px", fontWeight: 600 }}>Password</label>
             <div style={{ position: "relative" }} className="mt-1">
               <input className="form-control" placeholder="Min 8 chars"
                 type={showPw ? "text" : "password"} value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingRight: 44 }} />
+                onChange={(e) => setPassword(e.target.value)} style={{ paddingRight: 44 }} />
               <button type="button" onClick={() => setShowPw(p => !p)}
                 style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
                   background: "none", border: "none", cursor: "pointer", padding: 0 }}>
@@ -91,13 +130,13 @@ function Signup() {
             </div>
           </div>
 
+          {/* Confirm Password */}
           <div className="mb-4">
             <label style={{ color: "var(--text-secondary)", fontSize: "13px", fontWeight: 600 }}>Confirm Password</label>
             <div style={{ position: "relative" }} className="mt-1">
               <input className="form-control" placeholder="Repeat password"
                 type={showCon ? "text" : "password"} value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                style={{ paddingRight: 44 }} />
+                onChange={(e) => setConfirm(e.target.value)} style={{ paddingRight: 44 }} />
               <button type="button" onClick={() => setShowCon(p => !p)}
                 style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
                   background: "none", border: "none", cursor: "pointer", padding: 0 }}>

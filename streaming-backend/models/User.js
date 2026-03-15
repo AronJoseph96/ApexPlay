@@ -5,32 +5,37 @@ const collectionSchema = new mongoose.Schema({
   movies: [{ type: mongoose.Schema.Types.ObjectId, ref: "Movie" }]
 });
 
-const watchHistorySchema = new mongoose.Schema({
-  movie:         { type: mongoose.Schema.Types.ObjectId, ref: "Movie", required: true },
-  progress:      { type: Number, default: 0 },   // seconds watched
-  duration:      { type: Number, default: 0 },   // total seconds
-  seasonNumber:  { type: Number, default: null },
-  episodeNumber: { type: Number, default: null },
-  watchedAt:     { type: Date,   default: Date.now }
+const profileSchema = new mongoose.Schema({
+  name:          { type: String, required: true },
+  avatar:        { type: String, default: "/avatars/1.jpg" },
+  pin:           { type: String, default: null },      // 4-digit PIN (hashed)
+  ageRating:     { type: String, default: "A",
+                   enum: ["U", "U/A 7+", "U/A 13+", "U/A 16+", "A", "R"] },
+  isKids:        { type: Boolean, default: false },
+  screenTimeLimit: { type: Number, default: null },    // daily minutes, null = no limit
+  screenTimeUsed:  { type: Number, default: 0 },       // minutes used today
+  screenTimeDate:  { type: String, default: null },    // "YYYY-MM-DD" of last reset
+  collections:   [collectionSchema],
 });
 
 const userSchema = new mongoose.Schema({
-  name:         String,
-  email:        { type: String, unique: true },
-  password:     String,
-  avatar:       { type: String, default: null },
+  name:     String,
+  email:    { type: String, unique: true },
+  password: String,
+  avatar:   { type: String, default: null },
+
   role: {
     type: String,
     enum: ["USER", "EMPLOYEE", "ADMIN", "user", "employee", "admin"],
     default: "USER"
   },
-  language:     { type: String, default: null },
 
-  // Password reset via OTP
+  language:   { type: String, default: null },
+  profiles:   { type: [profileSchema], default: [] },
+
+  // Password reset
   resetOTP:       { type: String, default: null },
   resetOTPExpiry: { type: Date,   default: null },
-  collections:  [collectionSchema],
-  watchHistory: [watchHistorySchema]
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);
