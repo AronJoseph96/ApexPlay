@@ -37,7 +37,8 @@ export default function Home() {
     try {
       const user = JSON.parse(localStorage.getItem("apexplay_user"));
       if (!user) return;
-      const key  = `apexplay_continue_${user._id}`;
+      const profile = JSON.parse(localStorage.getItem("apexplay_profile") || "null");
+      const key  = profile ? `apexplay_continue_${user._id}_${profile._id}` : `apexplay_continue_${user._id}`;
       setContinueWatching(JSON.parse(localStorage.getItem(key)) || []);
     } catch { /* ignore */ }
   }, []);

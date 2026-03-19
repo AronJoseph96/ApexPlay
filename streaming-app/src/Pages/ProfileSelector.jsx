@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const API = "http://localhost:5000";
-const AGE_RATINGS = ["U", "U/A 7+", "U/A 13+", "U/A 16+", "A", "R"];
+const AGE_RATINGS = ["U", "U/A 7+", "U/A 13+", "U/A 16+", "R", "A"];
 const AVATARS = Array.from({ length: 13 }, (_, i) => `/avatars/${i + 1}.jpg`);
 
 export default function ProfileSelector() {
@@ -32,6 +32,14 @@ export default function ProfileSelector() {
   const [formScreenTime,setFormScreenTime]= useState(60);
   const [formLoading,   setFormLoading]   = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+
+  // PIN-before-action state
+  const [actionTarget,  setActionTarget]  = useState(null); // {type:"edit"|"delete", profile}
+  const [actionPinVal,  setActionPinVal]  = useState(["","","",""]);
+  const [actionPinErr,  setActionPinErr]  = useState("");
+  const aRef0 = useRef(); const aRef1 = useRef();
+  const aRef2 = useRef(); const aRef3 = useRef();
+  const actionRefs = [aRef0, aRef1, aRef2, aRef3];
 
   useEffect(() => {
     if (!user) { navigate("/login"); return; }
@@ -109,6 +117,38 @@ export default function ProfileSelector() {
     }
   };
 
+  // ── Action PIN (for edit/delete) ──
+  const handleActionPin = (val, idx) => {
+    if (!/^\d*$/.test(val)) return;
+    const next = [...actionPinVal];
+    next[idx] = val.slice(-1);
+    setActionPinVal(next);
+    if (val && idx < 3) actionRefs[idx + 1].current?.focus();
+    if (idx === 3 && val) setTimeout(() => verifyActionPin(next), 50);
+  };
+  const handleActionPinKey = (e, idx) => {
+    if (e.key === "Backspace" && !actionPinVal[idx] && idx > 0) actionRefs[idx - 1].current?.focus();
+  };
+
+  const verifyActionPin = async (pinArr) => {
+    const entered = pinArr.join("");
+    try {
+      const res  = await fetch(`${API}/auth/verify-pin`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user._id, profileId: actionTarget.profile._id, pin: entered })
+      });
+      const data = await res.json();
+      if (data.valid) {
+        if (actionTarget.type === "edit")   doEdit(actionTarget.profile);
+        if (actionTarget.type === "delete") doDelete(actionTarget.profile);
+      } else {
+        setActionPinErr("Incorrect PIN. Try again.");
+        setActionPinVal(["","","",""]);
+        actionRefs[0].current?.focus();
+      }
+    } catch { setActionPinErr("Error verifying PIN."); }
+  };
+
   // ── Add / Edit profile ──
   const openAdd = () => {
     setFormName(""); setFormAvatar("/avatars/1.jpg");
@@ -117,11 +157,30 @@ export default function ProfileSelector() {
     setEditTarget(null); setShowAdd(true);
   };
 
+  const needsPin = (p) => p.pin || p.isKids;
+
   const openEdit = (p) => {
+    if (p.isKids && !p.pin) {
+      alert("This is a kids profile. Please set a PIN on it first to protect it from edits.");
+      doEdit(p); // allow edit so parent can add a PIN
+      return;
+    }
+    if (needsPin(p)) {
+      setActionTarget({ type: "edit", profile: p });
+      setActionPinVal(["","","",""]);
+      setActionPinErr("");
+      setTimeout(() => aRef0.current?.focus(), 100);
+      return;
+    }
+    doEdit(p);
+  };
+
+  const doEdit = (p) => {
     setFormName(p.name); setFormAvatar(p.avatar);
     setFormAgeRating(p.ageRating); setFormIsKids(p.isKids);
     setFormPin(""); setFormScreenTime(p.screenTimeLimit || 60);
     setEditTarget(p); setShowAdd(true);
+    setActionTarget(null);
   };
 
   const saveProfile = async () => {
@@ -152,10 +211,26 @@ export default function ProfileSelector() {
     setFormLoading(false);
   };
 
-  const deleteProfile = async (p) => {
+  const deleteProfile = (p) => {
+    if (p.isKids && !p.pin) {
+      if (window.confirm(`Delete kids profile "${p.name}"? (No PIN was set)`)) doDelete(p);
+      return;
+    }
+    if (needsPin(p)) {
+      setActionTarget({ type: "delete", profile: p });
+      setActionPinVal(["","","",""]);
+      setActionPinErr("");
+      setTimeout(() => aRef0.current?.focus(), 100);
+      return;
+    }
+    doDelete(p);
+  };
+
+  const doDelete = async (p) => {
     if (!window.confirm(`Delete profile "${p.name}"?`)) return;
     await fetch(`${API}/users/${user._id}/profiles/${p._id}`, { method: "DELETE" });
     fetchProfiles();
+    setActionTarget(null);
   };
 
   // ── Styles ──
@@ -209,9 +284,12 @@ export default function ProfileSelector() {
                     <button onClick={() => deleteProfile(p)} style={{ background:"#e50914", color:"#fff", border:"none", borderRadius:8, padding:"6px 10px", cursor:"pointer", fontSize:12, fontWeight:700 }}>Del</button>
                   </div>
                 )}
+                {p.isKids && !showManage && (
+                  <div style={{ position:"absolute", top:6, left:6, background:"#2563eb", borderRadius:6, padding:"2px 8px", fontSize:10, color:"#fff", fontWeight:700 }}>KIDS</div>
+                )}
               </div>
               <span style={{ color:"var(--text-primary)", fontWeight:600, fontSize:14 }}>{p.name}</span>
-              <span style={{ fontSize:11, color:"var(--text-muted)", background:"var(--bg-elevated)", borderRadius:6, padding:"2px 8px" }}>{p.ageRating}</span>
+
               {timeLocked && <span style={{ fontSize:11, color:"#f87171" }}>Time limit reached</span>}
             </div>
           );
@@ -320,12 +398,15 @@ export default function ProfileSelector() {
                 <label style={lbl}>Daily Screen Time Limit (minutes)</label>
                 <input style={inp} type="number" min={10} max={480} value={formScreenTime}
                   onChange={e=>setFormScreenTime(Number(e.target.value))} />
+                <p style={{ fontSize:11, color:"var(--text-muted)", margin:"4px 0 0" }}>
+                  ⚠️ Set a PIN below so children cannot edit this profile.
+                </p>
               </div>
             )}
 
             {/* PIN */}
             <div style={{ marginBottom:20 }}>
-              <label style={lbl}>4-Digit PIN {editTarget ? "(leave blank to keep current)" : "(optional)"}</label>
+              <label style={lbl}>4-Digit PIN {formIsKids ? "(recommended — prevents kids from editing)" : editTarget ? "(leave blank to keep current)" : "(optional)"}</label>
               <input style={inp} type="password" inputMode="numeric" maxLength={4}
                 placeholder="••••" value={formPin} onChange={e=>setFormPin(e.target.value.replace(/\D/g,"").slice(0,4))} />
             </div>
@@ -343,6 +424,37 @@ export default function ProfileSelector() {
           </div>
         </div>
       )}
+      {/* ── ACTION PIN MODAL (edit/delete) ── */}
+      {actionTarget && (
+        <div style={overlay}>
+          <div style={{ ...modal, textAlign:"center" }}>
+            <img src={actionTarget.profile.avatar} alt="" style={{ width:72, height:72, borderRadius:10, objectFit:"cover", marginBottom:12 }} />
+            <h4 style={{ fontWeight:800, marginBottom:4 }}>
+              {actionTarget.type === "edit" ? "Edit" : "Delete"} — {actionTarget.profile.name}
+            </h4>
+            <p style={{ color:"var(--text-muted)", fontSize:13, marginBottom:20 }}>
+              Enter the PIN to {actionTarget.type === "edit" ? "edit" : "delete"} this profile
+            </p>
+            <div style={{ display:"flex", gap:10, justifyContent:"center", marginBottom:12 }}>
+              {actionPinVal.map((d, i) => (
+                <input key={i} ref={actionRefs[i]} type="password" inputMode="numeric" maxLength={1}
+                  value={d} onChange={e => handleActionPin(e.target.value, i)}
+                  onKeyDown={e => handleActionPinKey(e, i)}
+                  style={{ width:52, height:60, textAlign:"center", fontSize:24, fontWeight:900,
+                    background:"var(--bg-elevated)", color:"var(--text-primary)",
+                    border: d ? "2px solid var(--accent)" : "1px solid var(--border)",
+                    borderRadius:10, outline:"none" }} />
+              ))}
+            </div>
+            {actionPinErr && <p style={{ color:"#f87171", fontSize:13, marginBottom:8 }}>{actionPinErr}</p>}
+            <button onClick={() => setActionTarget(null)}
+              style={{ background:"none", border:"none", color:"var(--text-muted)", fontFamily:"Outfit", fontSize:13, cursor:"pointer" }}>
+               Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

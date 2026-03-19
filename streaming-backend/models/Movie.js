@@ -24,7 +24,7 @@ const movieSchema = new mongoose.Schema({
   duration:    { type: String, default: "" },
   rating:      { type: Number, default: 0 },
   ageRating:   { type: String, default: "U",
-                 enum: ["U", "U/A 7+", "U/A 13+", "U/A 16+", "A", "R"] },
+                 enum: ["U", "U/A 7+", "U/A 13+", "U/A 16+", "R", "A"] },
   genres:      [String],
   language:    { type: String, default: "" },
   trailerUrl:  { type: String, default: "" },

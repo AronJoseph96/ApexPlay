@@ -26,7 +26,7 @@ export default function WatchMovie() {
 
   const videoRef    = useRef();
   const { user, activeProfile } = useAuth();
-  const continueKey = user ? `apexplay_continue_${user._id}` : null;
+  const continueKey = (user && activeProfile) ? `apexplay_continue_${user._id}_${activeProfile._id}` : null;
   // unique key per movie/episode for resume
   const progressKey = user
     ? `apexplay_progress_${user._id}_${id}${seasonParam ? `_s${seasonParam}e${epParam}` : ""}`
@@ -41,7 +41,7 @@ export default function WatchMovie() {
 
         // ── Age rating check ──
         if (activeProfile) {
-          const ORDER = ["U", "U/A 7+", "U/A 13+", "U/A 16+", "A", "R"];
+          const ORDER = ["U", "U/A 7+", "U/A 13+", "U/A 16+", "R", "A"];
           const contentIdx = ORDER.indexOf(data.ageRating || "U");
           const profileIdx = ORDER.indexOf(activeProfile.ageRating || "A");
           if (contentIdx > profileIdx) {
@@ -337,13 +337,15 @@ function CustomPlayer({ videoRef, src }) {
           background: showControls ? "linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 40%)" : "transparent",
           transition:"opacity 0.3s", opacity: showControls ? 1 : 0, pointerEvents: showControls ? "all" : "none" }}>
 
-        {/* CENTER PLAY/PAUSE HINT */}
-        <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", pointerEvents:"none" }}>
-          {!playing && (
-            <div style={{ width:72, height:72, borderRadius:"50%", background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            </div>
-          )}
+        {/* CENTER PLAY/PAUSE — clickable */}
+        <div onClick={togglePlay}
+          style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)",
+            cursor:"pointer", zIndex:10 }}>
+          <div style={{ width:72, height:72, borderRadius:"50%", background:"rgba(0,0,0,0.5)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            opacity: !playing ? 1 : 0, transition:"opacity 0.2s" }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </div>
         </div>
 
         {/* SKIP BUTTONS */}

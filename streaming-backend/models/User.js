@@ -10,7 +10,7 @@ const profileSchema = new mongoose.Schema({
   avatar:        { type: String, default: "/avatars/1.jpg" },
   pin:           { type: String, default: null },      // 4-digit PIN (hashed)
   ageRating:     { type: String, default: "A",
-                   enum: ["U", "U/A 7+", "U/A 13+", "U/A 16+", "A", "R"] },
+                   enum: ["U", "U/A 7+", "U/A 13+", "U/A 16+", "R", "A"] },
   isKids:        { type: Boolean, default: false },
   screenTimeLimit: { type: Number, default: null },    // daily minutes, null = no limit
   screenTimeUsed:  { type: Number, default: 0 },       // minutes used today
