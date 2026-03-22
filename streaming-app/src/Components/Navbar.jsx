@@ -112,7 +112,7 @@ function Navbar() {
             </ul>
 
             {/* SEARCH */}
-            <form className="d-flex flex-grow-1 my-2 my-lg-0 gap-2" onSubmit={onSearchSubmit} style={{ position:"relative", zIndex:100 }}>
+            <form className="d-flex flex-grow-1 my-2 my-lg-0 gap-2 flex-wrap flex-lg-nowrap" onSubmit={onSearchSubmit} style={{ position:"relative", zIndex:100 }}>
               <div ref={dropdownRef} style={{ position:"relative", flex:1 }}>
                 <input
                   className="form-control nav-search"
@@ -191,7 +191,7 @@ function Navbar() {
                   </div>
                 )}
               </div>
-              <button type="button" className="btn btn-outline-light flex-shrink-0"
+              <button type="button" className="btn btn-outline-light flex-shrink-0 d-none d-sm-block"
                 data-bs-toggle="offcanvas" data-bs-target="#filtersOffcanvas">
                 Filters
               </button>
@@ -258,18 +258,18 @@ function Navbar() {
 
                     {/* Active profile + switch */}
                     {activeProfile && <li><span className="dropdown-item disabled" style={{fontSize:12,opacity:0.6}}>Profile: {activeProfile.name}</span></li>}
-                    <li><Link className="dropdown-item" to="/profiles">🔄 Switch Profile</Link></li>
-                    <li><Link className="dropdown-item" to="/profile">👤 My Account</Link></li>
+                    <li><Link className="dropdown-item" to="/profiles"> Switch Profile</Link></li>
+                    <li><Link className="dropdown-item" to="/profile"> My Account</Link></li>
                     <li><Link className="dropdown-item" to="/subscription">
-                      {user?.subscription?.status === "active" ? "⭐ Subscription" : "🔓 Subscribe"}
+                      {user?.subscription?.status === "active" ? " Subscription" : " Subscribe"}
                     </Link></li>
                     <li><hr className="dropdown-divider" style={{ borderColor: "var(--border)" }} /></li>
 
                     {/* Admin links */}
                     {isAdmin && (
                       <>
-                        <li><Link className="dropdown-item" to="/admin/dashboard">🎬 Admin Dashboard</Link></li>
-                        <li><Link className="dropdown-item" to="/admin/users">👥 Manage Users</Link></li>
+                        <li><Link className="dropdown-item" to="/admin/dashboard"> Admin Dashboard</Link></li>
+                        <li><Link className="dropdown-item" to="/admin/users"> Manage Users</Link></li>
                         <li><hr className="dropdown-divider" style={{ borderColor: "var(--border)" }} /></li>
                       </>
                     )}
@@ -277,7 +277,7 @@ function Navbar() {
                     {/* Employee link */}
                     {isEmployee && (
                       <>
-                        <li><Link className="dropdown-item" to="/employee/dashboard">🎬 My Dashboard</Link></li>
+                        <li><Link className="dropdown-item" to="/employee/dashboard"> My Dashboard</Link></li>
                         <li><hr className="dropdown-divider" style={{ borderColor: "var(--border)" }} /></li>
                       </>
                     )}

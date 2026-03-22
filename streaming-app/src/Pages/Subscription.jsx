@@ -7,17 +7,17 @@ const API = "http://localhost:5000";
 const PLANS = [
   {
     id: "basic", name: "Basic", price: 99, color: "#6366f1",
-    features: ["HD streaming", "All movies & series", "Cancel anytime"],
+    features: ["HD streaming", "1 screen at a time", "All movies & series", "Cancel anytime"],
     badge: null
   },
   {
     id: "standard", name: "Standard", price: 199, color: "#e50914",
-    features: ["Full HD streaming", "All movies & series", "Downloads available", "Cancel anytime"],
+    features: ["Full HD streaming", "2 screens at a time", "All movies & series", "Downloads available", "Cancel anytime"],
     badge: "Most Popular"
   },
   {
-    id: "premium", name: "Premium", price: 299, color: "#f59e0b",
-    features: ["4K Ultra HD", "All movies & series", "Unlimited downloads", "Priority support", "Cancel anytime"],
+    id: "premium", name: "Premium", price: 399, color: "#f59e0b",
+    features: ["4K Ultra HD", "4 screens at a time", "All movies & series", "Unlimited downloads", "Priority support", "Cancel anytime"],
     badge: "Best Value"
   },
 ];
@@ -100,7 +100,6 @@ export default function Subscription() {
         {/* ── ALREADY SUBSCRIBED ── */}
         {isActive && step !== "success" ? (
           <div style={{ textAlign:"center", padding:"40px 0" }}>
-            <div style={{ fontSize:64, marginBottom:16 }}>🎬</div>
             <h2 style={{ fontWeight:900, fontSize:28, marginBottom:8 }}>You're all set!</h2>
             <p style={{ color:"var(--text-muted)", fontSize:16, marginBottom:24 }}>
               You have an active <strong style={{ color:"var(--accent)" }}>{sub.plan?.charAt(0).toUpperCase()+sub.plan?.slice(1)}</strong> subscription.
@@ -126,7 +125,7 @@ export default function Subscription() {
             <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
               <button onClick={() => navigate("/")} className="btn btn-danger"
                 style={{ borderRadius:10, fontWeight:700, padding:"11px 28px" }}>
-                Start Watching →
+                Start Watching 
               </button>
               <button onClick={handleCancel}
                 style={{ background:"none", border:"1px solid var(--border)", color:"var(--text-muted)",
@@ -164,7 +163,7 @@ export default function Subscription() {
               </p>
             </div>
 
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:20, marginBottom:36 }}>
+            <div className="sub-plans-grid" style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:20, marginBottom:36 }}>
               {PLANS.map(p => (
                 <div key={p.id} onClick={() => setSelectedPlan(p.id)}
                   style={{ position:"relative", background:"var(--bg-surface)", border:`2px solid ${selectedPlan===p.id ? p.color : "var(--border)"}`,
@@ -209,7 +208,7 @@ export default function Subscription() {
                 Continue with {plan?.name} — ₹{plan?.price}/mo
               </button>
               <p style={{ color:"var(--text-muted)", fontSize:13, marginTop:12 }}>
-                 Secure  payment · No real charges
+                 Secure payment · No real charges
               </p>
             </div>
           </>
@@ -253,7 +252,7 @@ export default function Subscription() {
                     }} />
                 </div>
 
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))", gap:12 }}>
                   <div>
                     <label style={{ fontSize:13, fontWeight:600, color:"var(--text-muted)", display:"block", marginBottom:6 }}>Expiry Date</label>
                     <input className="form-control" placeholder="MM/YY" maxLength={5}

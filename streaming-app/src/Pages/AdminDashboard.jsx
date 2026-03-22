@@ -36,6 +36,7 @@ function UploadMovieTab({ genresList, languages }) {
   const [poster,setPoster] = useState(null);
   const [banner,setBanner] = useState(null);
   const [video,setVideo]   = useState(null);
+  const [videoUrl,setVideoUrl] = useState("");
   const [pPrev,setPPrev]   = useState(null);
   const [bPrev,setBPrev]   = useState(null);
   const [loading,setL]     = useState(false);
@@ -49,13 +50,16 @@ function UploadMovieTab({ genresList, languages }) {
     const fd = new FormData();
     Object.keys(form).forEach(k=>{ if(k!=="trailerUrl") fd.append(k,form[k]); });
     fd.append("genres",JSON.stringify(genres));
-    fd.append("poster",poster); fd.append("banner",banner); fd.append("video",video);
+    if(poster) fd.append("poster",poster);
+    if(banner) fd.append("banner",banner);
+    if(video) fd.append("video",video);
+    if(videoUrl.trim()) fd.append("videoUrl",videoUrl.trim());
     if(form.trailerUrl) fd.append("trailerUrl",form.trailerUrl);
     try {
       await axios.post(`${API}/movies/upload/movie`,fd,{
         onUploadProgress: e => setProgress(Math.round((e.loaded/e.total)*100))
       });
-      setMsg("✓ Uploaded!"); setProgress(0); F(blank); G([]); setPoster(null); setBanner(null); setVideo(null); setPPrev(null); setBPrev(null);
+      setMsg("✓ Uploaded!"); setProgress(0); F(blank); G([]); setPoster(null); setBanner(null); setVideo(null); setVideoUrl(""); setPPrev(null); setBPrev(null);
     } catch(err){ setMsg("✗ "+(err.response?.data?.error||"Failed")); setProgress(0); }
     finally { setL(false); }
   };
@@ -95,8 +99,15 @@ function UploadMovieTab({ genresList, languages }) {
         ))}
         <div className="col-md-4">
           <label className="form-label">Video *</label>
-          <input type="file" accept="video/*" className="form-control" onChange={e=>setVideo(e.target.files[0])} />
+          <input type="file" accept="video/*" className="form-control" onChange={e=>{setVideo(e.target.files[0]); setVideoUrl("");}} disabled={!!videoUrl} />
           {video && <small style={{color:"var(--text-muted)"}}>{video.name}</small>}
+          <div style={{display:"flex",alignItems:"center",gap:8,margin:"8px 0"}}>
+            <hr style={{flex:1,borderColor:"var(--border)",margin:0}} />
+            <span style={{fontSize:12,color:"var(--text-muted)",fontWeight:600}}>OR</span>
+            <hr style={{flex:1,borderColor:"var(--border)",margin:0}} />
+          </div>
+          <input className="form-control" placeholder="Paste Cloudinary video URL" value={videoUrl} onChange={e=>{setVideoUrl(e.target.value); if(e.target.value) setVideo(null);}} disabled={!!video} />
+          {videoUrl && <small style={{color:"#4ade80",marginTop:4,display:"block"}}>✓ Using URL</small>}
         </div>
       </div>
       {loading && progress > 0 && (
@@ -134,7 +145,8 @@ function CreateSeriesTab({ genresList, languages }) {
     const fd = new FormData();
     Object.keys(form).forEach(k=>fd.append(k,form[k]));
     fd.append("genres",JSON.stringify(genres));
-    fd.append("poster",poster); fd.append("banner",banner);
+    if(poster) fd.append("poster",poster);
+    if(banner) fd.append("banner",banner);
     try {
       await axios.post(`${API}/movies/upload/series`,fd,{
         onUploadProgress: e => setProgress(Math.round((e.loaded/e.total)*100))
@@ -199,6 +211,13 @@ function AddEpisodesTab() {
   const [uploading,setUploading]         = useState(false);
   const [msg,setMsg]                     = useState("");
   const [epProgress,setEpProgress]       = useState(0);
+  const [epVideoUrl,setEpVideoUrl]       = useState("");
+  const [editEp,setEditEp]               = useState(null); // {ep, seasonNumber}
+  const [editEpForm,setEditEpForm]       = useState({title:"",description:"",duration:""});
+  const [editEpVideo,setEditEpVideo]     = useState(null);
+  const [editEpVideoUrl,setEditEpVideoUrl] = useState("");
+  const [editEpThumb,setEditEpThumb]     = useState(null);
+  const [editEpSaving,setEditEpSaving]   = useState(false);
 
   useEffect(()=>{ fetch(`${API}/movies?category=Series`).then(r=>r.json()).then(setSeriesList); },[]);
 
@@ -210,6 +229,30 @@ function AddEpisodesTab() {
     catch(e){ setMsg("✗ "+(e.response?.data?.error||"Failed")); }
   };
 
+  const openEditEp = (ep, sNum) => {
+    setEditEp({ ep, seasonNumber: sNum });
+    setEditEpForm({ title: ep.title, description: ep.description||"", duration: ep.duration||"" });
+    setEditEpVideo(null); setEditEpVideoUrl(ep.videoUrl||""); setEditEpThumb(null);
+  };
+
+  const saveEditEp = async () => {
+    if (!editEp) return;
+    setEditEpSaving(true);
+    const fd = new FormData();
+    fd.append("title",       editEpForm.title);
+    fd.append("description", editEpForm.description);
+    fd.append("duration",    editEpForm.duration);
+    if (editEpVideo) fd.append("video", editEpVideo);
+    else if (editEpVideoUrl.trim()) fd.append("videoUrl", editEpVideoUrl.trim());
+    if (editEpThumb) fd.append("thumbnail", editEpThumb);
+    try {
+      await axios.patch(`${API}/movies/${selected._id}/seasons/${editEp.seasonNumber}/episodes/${editEp.ep.episodeNumber}`, fd);
+      await refresh(selected._id);
+      setEditEp(null); setMsg("✓ Episode updated");
+    } catch(e) { setMsg("✗ "+(e.response?.data?.error||"Failed")); }
+    setEditEpSaving(false);
+  };
+
   const delSeason = async sNum => {
     if(!window.confirm(`Delete Season ${sNum}?`)) return;
     await axios.delete(`${API}/movies/${selected._id}/seasons/${sNum}`);
@@ -217,18 +260,20 @@ function AddEpisodesTab() {
   };
 
   const addEpisode = async sNum => {
-    if(!video) return setMsg("✗ Video required");
+    if(!video && !epVideoUrl.trim()) return setMsg("✗ Video file or URL required");
     setUploading(true); setMsg("");
     const fd = new FormData();
     Object.keys(epForm).forEach(k=>fd.append(k,epForm[k]));
-    fd.append("video",video); if(thumb) fd.append("thumbnail",thumb);
+    if(video) fd.append("video",video);
+    if(epVideoUrl.trim()) fd.append("videoUrl",epVideoUrl.trim());
+    if(thumb) fd.append("thumbnail",thumb);
     try {
       await axios.post(`${API}/movies/${selected._id}/seasons/${sNum}/episodes`,fd,{
         onUploadProgress: e => setEpProgress(Math.round((e.loaded/e.total)*100))
       });
       setEpProgress(0);
       await refresh(selected._id);
-      setEpForm({episodeNumber:"",title:"",description:"",duration:""}); setVideo(null); setThumb(null);
+      setEpForm({episodeNumber:"",title:"",description:"",duration:""}); setVideo(null); setThumb(null); setEpVideoUrl("");
       setMsg("✓ Episode added");
     } catch(e){ setMsg("✗ "+(e.response?.data?.error||"Failed")); setEpProgress(0); }
     finally { setUploading(false); }
@@ -278,9 +323,12 @@ function AddEpisodesTab() {
                 {expanded===s.seasonNumber && (
                   <div style={{padding:16}}>
                     {s.episodes?.map(ep=>(
-                      <div key={ep.episodeNumber} style={{display:"flex",justifyContent:"space-between",padding:"8px 12px",background:"var(--bg-elevated)",borderRadius:8,marginBottom:6}}>
+                      <div key={ep.episodeNumber} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",background:"var(--bg-elevated)",borderRadius:8,marginBottom:6}}>
                         <span style={{fontSize:14}}>Ep {ep.episodeNumber}: {ep.title} <span style={{color:"var(--text-muted)",fontSize:12}}>— {ep.duration}</span></span>
-                        <button onClick={()=>delEpisode(s.seasonNumber,ep.episodeNumber)} style={{background:"none",color:"var(--accent)",border:"none",cursor:"pointer",fontSize:13}}>✕</button>
+                        <div style={{display:"flex",gap:6}}>
+                          <button onClick={()=>openEditEp(ep,s.seasonNumber)} style={{background:"rgba(99,102,241,0.15)",color:"#818cf8",border:"none",borderRadius:6,padding:"3px 10px",fontSize:12,cursor:"pointer",fontWeight:600}}>✏ Edit</button>
+                          <button onClick={()=>delEpisode(s.seasonNumber,ep.episodeNumber)} style={{background:"rgba(229,9,20,0.1)",color:"var(--accent)",border:"none",borderRadius:6,padding:"3px 10px",fontSize:12,cursor:"pointer",fontWeight:600}}>✕ Del</button>
+                        </div>
                       </div>
                     ))}
                     <div style={{background:"var(--bg-surface)",border:"1px solid var(--border)",borderRadius:10,padding:14,marginTop:12}}>
@@ -290,7 +338,17 @@ function AddEpisodesTab() {
                         <div className="col-md-4"><input placeholder="Title" className="form-control" value={epForm.title} onChange={e=>setEpForm({...epForm,title:e.target.value})} /></div>
                         <div className="col-md-2"><input placeholder="Duration" className="form-control" value={epForm.duration} onChange={e=>setEpForm({...epForm,duration:e.target.value})} /></div>
                         <div className="col-md-4"><input placeholder="Description" className="form-control" value={epForm.description} onChange={e=>setEpForm({...epForm,description:e.target.value})} /></div>
-                        <div className="col-md-6"><label className="form-label" style={{fontSize:13}}>Video *</label><input type="file" accept="video/*" className="form-control" onChange={e=>setVideo(e.target.files[0])} /></div>
+                        <div className="col-md-6">
+                          <label className="form-label" style={{fontSize:13}}>Video *</label>
+                          <input type="file" accept="video/*" className="form-control" onChange={e=>{setVideo(e.target.files[0]); setEpVideoUrl("");}} disabled={!!epVideoUrl} />
+                          <div style={{display:"flex",alignItems:"center",gap:8,margin:"6px 0"}}>
+                            <hr style={{flex:1,borderColor:"var(--border)",margin:0}}/>
+                            <span style={{fontSize:11,color:"var(--text-muted)",fontWeight:600}}>OR</span>
+                            <hr style={{flex:1,borderColor:"var(--border)",margin:0}}/>
+                          </div>
+                          <input className="form-control" style={{fontSize:13}} placeholder="Paste Cloudinary URL" value={epVideoUrl||""} onChange={e=>{setEpVideoUrl(e.target.value); if(e.target.value) setVideo(null);}} disabled={!!video} />
+                          {epVideoUrl && <small style={{color:"#4ade80"}}>✓ Using URL</small>}
+                        </div>
                         <div className="col-md-6"><label className="form-label" style={{fontSize:13}}>Thumbnail</label><input type="file" accept="image/*" className="form-control" onChange={e=>setThumb(e.target.files[0])} /></div>
                       </div>
                       {uploading && epProgress > 0 && (<div style={{marginBottom:8}}><div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"var(--text-muted)",marginBottom:3}}><span>Uploading…</span><span>{epProgress}%</span></div><div style={{height:4,background:"var(--bg-elevated)",borderRadius:999}}><div style={{height:"100%",width:`${epProgress}%`,background:"var(--accent)",borderRadius:999,transition:"width 0.3s"}}/></div></div>)}<button className="btn btn-danger mt-3" onClick={()=>addEpisode(s.seasonNumber)} disabled={uploading} style={{borderRadius:10,fontFamily:"Outfit",fontWeight:600}}>{uploading?"Uploading…":`+ Add Episode to Season ${s.seasonNumber}`}</button>
@@ -301,6 +359,42 @@ function AddEpisodesTab() {
             ))
           }
         </>
+      )}
+      {/* ── EDIT EPISODE MODAL ── */}
+      {editEp && (
+        <div onClick={e=>e.target===e.currentTarget&&setEditEp(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",backdropFilter:"blur(8px)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+          <div style={{background:"var(--bg-surface)",border:"1px solid var(--border)",borderRadius:18,padding:28,width:"100%",maxWidth:520,maxHeight:"90vh",overflowY:"auto",fontFamily:"Outfit",color:"var(--text-primary)"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+              <h5 style={{margin:0,fontWeight:800}}>Edit — Ep {editEp.ep.episodeNumber}: {editEp.ep.title}</h5>
+              <button onClick={()=>setEditEp(null)} style={{background:"var(--bg-elevated)",border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",color:"var(--text-primary)",fontSize:16}}>✕</button>
+            </div>
+            <div className="row g-3">
+              <div className="col-12"><label className="form-label">Title</label><input className="form-control" value={editEpForm.title} onChange={e=>setEditEpForm({...editEpForm,title:e.target.value})} /></div>
+              <div className="col-md-6"><label className="form-label">Duration</label><input className="form-control" placeholder="e.g. 45m" value={editEpForm.duration} onChange={e=>setEditEpForm({...editEpForm,duration:e.target.value})} /></div>
+              <div className="col-12"><label className="form-label">Description</label><textarea className="form-control" rows={2} value={editEpForm.description} onChange={e=>setEditEpForm({...editEpForm,description:e.target.value})} /></div>
+              <div className="col-12">
+                <label className="form-label">Replace Video</label>
+                <input type="file" accept="video/*" className="form-control" onChange={e=>{setEditEpVideo(e.target.files[0]); setEditEpVideoUrl("");}} disabled={!!editEpVideoUrl && editEpVideoUrl!==editEp.ep.videoUrl} />
+                <div style={{display:"flex",alignItems:"center",gap:8,margin:"8px 0"}}>
+                  <hr style={{flex:1,borderColor:"var(--border)",margin:0}}/><span style={{fontSize:12,color:"var(--text-muted)",fontWeight:600}}>OR</span><hr style={{flex:1,borderColor:"var(--border)",margin:0}}/>
+                </div>
+                <input className="form-control" placeholder="Paste Cloudinary video URL" value={editEpVideoUrl} onChange={e=>{setEditEpVideoUrl(e.target.value); if(e.target.value) setEditEpVideo(null);}} disabled={!!editEpVideo} />
+                {editEpVideoUrl && <small style={{color:"#4ade80",marginTop:4,display:"block"}}>✓ {editEpVideo ? "New file selected" : "Using URL"}</small>}
+              </div>
+              <div className="col-12">
+                <label className="form-label">Replace Thumbnail (optional)</label>
+                <input type="file" accept="image/*" className="form-control" onChange={e=>setEditEpThumb(e.target.files[0])} />
+                {editEp.ep.thumbnail && !editEpThumb && <img src={editEp.ep.thumbnail} alt="" style={{width:80,height:50,objectFit:"cover",borderRadius:6,marginTop:6}} />}
+              </div>
+            </div>
+            <div style={{display:"flex",gap:8,marginTop:20}}>
+              <button onClick={saveEditEp} disabled={editEpSaving} style={{flex:1,padding:"11px 0",background:"var(--accent)",color:"#fff",border:"none",borderRadius:10,fontFamily:"Outfit",fontWeight:700,cursor:"pointer"}}>
+                {editEpSaving ? "Saving…" : "💾 Save Changes"}
+              </button>
+              <button onClick={()=>setEditEp(null)} style={{flex:1,padding:"11px 0",background:"var(--bg-elevated)",color:"var(--text-primary)",border:"1px solid var(--border)",borderRadius:10,fontFamily:"Outfit",fontWeight:600,cursor:"pointer"}}>Cancel</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -358,7 +452,7 @@ function ManageTab({ genresList, languages }) {
         ))}
         <input className="form-control" placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)} style={{maxWidth:220}} />
       </div>
-      <div style={{overflowX:"auto"}}>
+      <div style={{overflowX:"auto", WebkitOverflowScrolling:"touch"}}>
         <table style={{width:"100%",borderCollapse:"collapse",fontFamily:"Outfit",fontSize:14}}>
           <thead>
             <tr style={{borderBottom:"1px solid var(--border)",color:"var(--text-muted)"}}>
@@ -653,7 +747,7 @@ export default function AdminDashboard() {
     <div style={{paddingTop:90,minHeight:"100vh",background:"var(--bg-base)",color:"var(--text-primary)"}}>
       <div className="container py-4" style={{maxWidth:860}}>
         <h2 style={{fontFamily:"Outfit",fontWeight:700,marginBottom:28}}>Admin Dashboard</h2>
-        <div style={{display:"flex",gap:0,marginBottom:28,borderBottom:"1px solid var(--border)"}}>
+        <div style={{display:"flex",gap:0,marginBottom:28,borderBottom:"1px solid var(--border)",overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
           {tabs.map(t=>(
             <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"10px 18px",background:"none",border:"none",borderBottom:tab===t.id?"2px solid var(--accent)":"2px solid transparent",color:tab===t.id?"var(--accent)":"var(--text-secondary)",fontFamily:"Outfit",fontWeight:600,fontSize:14,cursor:"pointer",marginBottom:-1}}>{t.label}</button>
           ))}

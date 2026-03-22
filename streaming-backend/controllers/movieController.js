@@ -43,24 +43,42 @@ exports.getMovieById = async (req, res) => {
 
 exports.uploadMovie = async (req, res) => {
   try {
-    if (!req.files?.poster || !req.files?.banner || !req.files?.video)
-      return res.status(400).json({ error: "poster, banner and video are required" });
+    // Parse all body fields first (handle arrays from multipart)
+    let { title, description, releaseYear, duration, rating, ageRating, genres, language, category, trailerUrl, videoUrl: videoUrlBody } = req.body;
+    if (Array.isArray(trailerUrl))    trailerUrl    = trailerUrl[0];
+    if (Array.isArray(videoUrlBody))  videoUrlBody  = videoUrlBody[0];
+    if (Array.isArray(title))         title         = title[0];
+    if (Array.isArray(language))      language      = language[0];
+    if (Array.isArray(category))      category      = category[0];
 
-    let { title, description, releaseYear, duration, rating, ageRating, genres, language, category, trailerUrl } = req.body;
-    if (Array.isArray(trailerUrl)) trailerUrl = trailerUrl[0];
+    console.log("uploadMovie — videoUrlBody:", videoUrlBody, "| hasVideoFile:", !!req.files?.video);
+
+    if (!req.files?.poster || !req.files?.banner)
+      return res.status(400).json({ error: "Poster and banner images are required" });
+
+    // Must have either a video file or a URL
+    if (!req.files?.video && !videoUrlBody?.trim())
+      return res.status(400).json({ error: "Please upload a video file OR paste a Cloudinary video URL" });
+
     const lang   = slugify(language || "Unknown");
     const name   = slugify(title);
     const folder = `Movies/${lang}/${name}`;
-    const [posterUp, bannerUp, videoUp] = await Promise.all([
-      uploadToCloudinary(req.files.poster[0].path, { folder: `${folder}` }),
-      uploadToCloudinary(req.files.banner[0].path, { folder: `${folder}` }),
-      uploadToCloudinary(req.files.video[0].path,  { resource_type: "video", folder: `${folder}` }),
+
+    const [posterUp, bannerUp] = await Promise.all([
+      uploadToCloudinary(req.files.poster[0].path, { folder }),
+      uploadToCloudinary(req.files.banner[0].path, { folder }),
     ]);
+
+    let finalVideoUrl = videoUrlBody?.trim() || "";
+    if (req.files?.video) {
+      const videoUp = await uploadToCloudinary(req.files.video[0].path, { resource_type: "video", folder });
+      finalVideoUrl = videoUp.secure_url;
+    }
 
     const movie = await Movie.create({
       title, description,
       poster: posterUp.secure_url, banner: bannerUp.secure_url,
-      videoUrl: videoUp.secure_url,
+      videoUrl: finalVideoUrl,
       trailerUrl: trailerUrl || "",
       releaseYear: Number(releaseYear), duration, rating: Number(rating),
       ageRating: ageRating || "U",
@@ -177,24 +195,78 @@ exports.addEpisode = async (req, res) => {
     if (!movie) return res.status(404).json({ error: "Not found" });
     const season = movie.seasons.find(s => s.seasonNumber === Number(req.params.seasonNumber));
     if (!season) return res.status(404).json({ error: "Season not found" });
-    if (!req.files?.video) return res.status(400).json({ error: "Video file required" });
+    let { episodeNumber, title: epTitle, description: epDesc, duration: epDur, videoUrl: epVideoUrlBody } = req.body;
+    if (Array.isArray(epVideoUrlBody)) epVideoUrlBody = epVideoUrlBody[0];
+    if (Array.isArray(episodeNumber))  episodeNumber  = episodeNumber[0];
+    const title       = epTitle;
+    const description = epDesc;
+    const duration    = epDur;
+    console.log("addEpisode — epVideoUrlBody:", epVideoUrlBody, "| hasVideoFile:", !!req.files?.video);
+    if (!req.files?.video && !epVideoUrlBody?.trim())
+      return res.status(400).json({ error: "Please upload a video file OR paste a Cloudinary video URL" });
 
-    const { episodeNumber, title, description, duration } = req.body;
     const lang          = slugify(movie.language || "Unknown");
     const seriesName    = slugify(movie.title);
     const seasonFolder  = `Series/${lang}/${seriesName}/Season_${req.params.seasonNumber}`;
-    const videoUp = await uploadToCloudinary(req.files.video[0].path, { resource_type: "video", folder: seasonFolder });
+
+    let finalEpVideoUrl = epVideoUrlBody?.trim() || "";
+    if (req.files?.video) {
+      const videoUp = await uploadToCloudinary(req.files.video[0].path, { resource_type: "video", folder: seasonFolder });
+      finalEpVideoUrl = videoUp.secure_url;
+    }
+
     let thumbnailUrl = "";
     if (req.files?.thumbnail) {
       const thumbUp = await uploadToCloudinary(req.files.thumbnail[0].path, { folder: seasonFolder });
       thumbnailUrl = thumbUp.secure_url;
     }
-    season.episodes.push({ episodeNumber: Number(episodeNumber), title, description, duration, videoUrl: videoUp.secure_url, thumbnail: thumbnailUrl });
+    season.episodes.push({ episodeNumber: Number(episodeNumber), title, description, duration, videoUrl: finalEpVideoUrl, thumbnail: thumbnailUrl });
     await movie.save();
     res.json(movie);
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 };
 
+
+exports.updateEpisode = async (req, res) => {
+  try {
+    const movie = await Movie.findById(req.params.id);
+    if (!movie) return res.status(404).json({ error: "Not found" });
+    const season = movie.seasons.find(s => s.seasonNumber === Number(req.params.seasonNumber));
+    if (!season) return res.status(404).json({ error: "Season not found" });
+    const episode = season.episodes.find(e => e.episodeNumber === Number(req.params.episodeNumber));
+    if (!episode) return res.status(404).json({ error: "Episode not found" });
+
+    let { title, description, duration, videoUrl: videoUrlBody } = req.body;
+    if (Array.isArray(videoUrlBody)) videoUrlBody = videoUrlBody[0];
+
+    if (title)       episode.title       = title;
+    if (description !== undefined) episode.description = description;
+    if (duration)    episode.duration    = duration;
+
+    // Update video — file takes priority over URL
+    if (req.files?.video) {
+      const lang         = slugify(movie.language || "Unknown");
+      const seriesName   = slugify(movie.title);
+      const seasonFolder = `Series/${lang}/${seriesName}/Season_${req.params.seasonNumber}`;
+      const videoUp      = await uploadToCloudinary(req.files.video[0].path, { resource_type: "video", folder: seasonFolder });
+      episode.videoUrl   = videoUp.secure_url;
+    } else if (videoUrlBody?.trim()) {
+      episode.videoUrl = videoUrlBody.trim();
+    }
+
+    // Update thumbnail
+    if (req.files?.thumbnail) {
+      const lang         = slugify(movie.language || "Unknown");
+      const seriesName   = slugify(movie.title);
+      const seasonFolder = `Series/${lang}/${seriesName}/Season_${req.params.seasonNumber}`;
+      const thumbUp      = await uploadToCloudinary(req.files.thumbnail[0].path, { folder: seasonFolder });
+      episode.thumbnail  = thumbUp.secure_url;
+    }
+
+    await movie.save();
+    res.json(movie);
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+};
 exports.deleteEpisode = async (req, res) => {
   try {
     const movie = await Movie.findById(req.params.id);

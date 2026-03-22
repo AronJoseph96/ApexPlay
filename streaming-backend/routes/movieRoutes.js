@@ -11,10 +11,10 @@ const {
   uploadSeries,
   addSeason,
   addEpisode,
+  updateEpisode,
   deleteEpisode,
   deleteSeason,
   deleteMovie,
-  updateMovie,
 } = require("../controllers/movieController");
 
 
@@ -63,6 +63,15 @@ router.post(
   addEpisode
 );
 
+router.patch(
+  "/:id/seasons/:seasonNumber/episodes/:episodeNumber",
+  upload.fields([
+    { name: "video",     maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
+  ]),
+  updateEpisode
+);
+
 router.delete(
   "/:id/seasons/:seasonNumber/episodes/:episodeNumber",
   deleteEpisode
@@ -72,14 +81,6 @@ router.delete(
 /* ─────────────────────────────────────
    SINGLE ITEM — MUST be last
 ───────────────────────────────────── */
-router.patch(
-  "/:id",
-  upload.fields([
-    { name: "poster", maxCount: 1 },
-    { name: "banner", maxCount: 1 },
-  ]),
-  updateMovie
-);
 router.get("/:id", getMovieById);
 router.delete("/:id", deleteMovie);
 

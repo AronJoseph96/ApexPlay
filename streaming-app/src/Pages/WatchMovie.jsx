@@ -139,16 +139,17 @@ export default function WatchMovie() {
 
   if (error === "SUBSCRIPTION_REQUIRED") return (
     <div style={{ height:"100vh", background:"var(--bg-base)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16, fontFamily:"Outfit", textAlign:"center", padding:24 }}>
+      <div style={{ fontSize:72 }}>🔒</div>
       <h2 style={{ color:"var(--text-primary)", fontWeight:900 }}>Subscription Required</h2>
       <p style={{ color:"var(--text-muted)", fontSize:16, maxWidth:400 }}>Subscribe to ApexPlay to watch unlimited movies and series.</p>
       <div style={{ display:"flex", gap:12, flexWrap:"wrap", justifyContent:"center" }}>
         <button onClick={() => navigate("/subscription")} className="btn btn-danger"
           style={{ borderRadius:10, fontWeight:700, padding:"12px 28px", fontSize:15 }}>
-          View Plans 
+          View Plans →
         </button>
         <button onClick={() => navigate(-1)}
           style={{ background:"none", border:"1px solid var(--border)", color:"var(--text-muted)", borderRadius:10, padding:"12px 20px", fontFamily:"Outfit", fontWeight:600, cursor:"pointer" }}>
-           Go Back
+          ← Go Back
         </button>
       </div>
     </div>
@@ -174,7 +175,7 @@ export default function WatchMovie() {
         }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <span style={{ color:"#fff", fontFamily:"Outfit", fontWeight:700, fontSize:16, flex:1, textAlign:"center", letterSpacing:"-0.3px" }}>{title}</span>
+        <span style={{ color:"#fff", fontFamily:"Outfit", fontWeight:700, fontSize:"clamp(13px,2vw,16px)", flex:1, textAlign:"center", letterSpacing:"-0.3px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", padding:"0 8px" }}>{title}</span>
         <div style={{ width:42 }} />
       </div>
 

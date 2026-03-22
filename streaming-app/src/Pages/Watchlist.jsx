@@ -172,7 +172,7 @@ export default function Watchlist() {
                 ) : (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
                     {activeCollection.movies.map(movie => (
-                      <div key={movie._id} style={{ width: 150 }}>
+                      <div key={movie._id} style={{ width: "clamp(110px, 20vw, 150px)" }}>
                         <div style={{ position: "relative" }}>
                           <img src={movie.poster} alt={movie.title}
                             onClick={() => navigate(movie.category === "Series" ? `/series/${movie._id}` : `/movie/${movie._id}`)}

@@ -43,34 +43,36 @@
 }
 
 html.light-mode {
-  --bg-base:        #f0f0f5;
-  --bg-surface:     #ffffff;
-  --bg-elevated:    #e4e4ec;
+  /* Warm grey base — distinct from white cards */
+  --bg-base:        #e8e8f0;
+  --bg-surface:     #f5f5fa;
+  --bg-elevated:    #dddde8;
 
   --text-primary:   #0d0d12;
-  --text-secondary: rgba(13,13,18,0.68);
-  --text-muted:     rgba(13,13,18,0.42);
+  --text-secondary: rgba(13,13,18,0.72);
+  --text-muted:     rgba(13,13,18,0.48);
 
-  --border:         rgba(0,0,0,0.10);
-  --border-hover:   rgba(0,0,0,0.24);
+  --border:         rgba(0,0,0,0.12);
+  --border-hover:   rgba(0,0,0,0.28);
 
   --accent:         #e50914;
   --accent-hover:   #c2070f;
   --accent-dim:     rgba(229,9,20,0.10);
 
-  --navbar-bg:      rgba(240,240,245,0.88);
-  --navbar-border:  rgba(0,0,0,0.09);
+  --navbar-bg:      rgba(232,232,240,0.92);
+  --navbar-border:  rgba(0,0,0,0.10);
 
-  --input-bg:       rgba(0,0,0,0.05);
+  --input-bg:       rgba(255,255,255,0.80);
   --input-color:    #0d0d12;
-  --input-border:   rgba(0,0,0,0.14);
-  --input-placeholder: rgba(13,13,18,0.40);
+  --input-border:   rgba(0,0,0,0.16);
+  --input-placeholder: rgba(13,13,18,0.42);
 
+  /* Cards get white bg with stronger shadow so posters pop */
   --card-bg:        #ffffff;
-  --card-shadow:    0 2px 16px rgba(0,0,0,0.08);
+  --card-shadow:    0 4px 20px rgba(0,0,0,0.14), 0 1px 4px rgba(0,0,0,0.08);
 
-  --offcanvas-bg:   rgba(240,240,245,0.99);
-  --row-arrow-grad: rgba(240,240,245,0.90);
+  --offcanvas-bg:   rgba(232,232,240,0.99);
+  --row-arrow-grad: rgba(232,232,240,0.92);
 
   --select-option-bg: #ffffff;
   --select-option-color: #0d0d12;
@@ -434,10 +436,6 @@ html.light-mode .btn-close { filter: none !important; }
   width: 100%; max-width: 400px;
   box-shadow: var(--card-shadow);
 }
-html.light-mode .auth-card {
-  border: 1px solid rgba(0,0,0,0.15) !important;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.14) !important;
-}
 .auth-card h3 { color: var(--text-primary) !important; font-family: 'Outfit', sans-serif; font-weight: 700; }
 
 /* ════════════════════════════════════════
@@ -485,3 +483,213 @@ h1, h2, h3, h4, h5, h6 { color: var(--text-primary); }
 
 /* py-4 / py-5 sections */
 section { color: var(--text-primary); }
+
+/* ════════════════════════════════════════
+   RESPONSIVE — MOBILE & TABLET
+════════════════════════════════════════ */
+
+/* ── Navbar mobile ── */
+@media (max-width: 991px) {
+  .navbar-overlay .collapse.navbar-collapse {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 8px;
+  }
+  .navbar-overlay .nav-link { padding: 10px 12px !important; }
+  .nav-search { border-radius: 10px !important; }
+  .theme-toggle { margin: 8px 0; }
+}
+
+/* ── Hero sections ── */
+@media (max-width: 768px) {
+  .home-hero,
+  .sd-hero {
+    height: 70vh !important;
+    min-height: 420px !important;
+  }
+  .home-hero-content,
+  .sd-hero-content {
+    left: 5% !important;
+    right: 5% !important;
+    bottom: 8% !important;
+    max-width: 100% !important;
+  }
+  .home-hero-title { font-size: clamp(28px, 7vw, 48px) !important; }
+  .sd-title { font-size: clamp(28px, 7vw, 52px) !important; letter-spacing: -1px !important; }
+  .home-btn-play, .sd-btn-play { padding: 10px 20px !important; font-size: 14px !important; }
+  .home-btn-info { padding: 10px 16px !important; font-size: 14px !important; }
+  .sd-back { top: 70px !important; left: 16px !important; }
+  .sd-desc, .home-hero-desc { font-size: 13px !important; -webkit-line-clamp: 2 !important; }
+  .sd-btn-icon { width: 42px !important; height: 42px !important; }
+}
+
+/* ── Auth pages ── */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 24px 18px !important;
+    margin: 0 12px !important;
+    border-radius: 14px !important;
+  }
+  .auth-page { padding-top: 60px !important; align-items: flex-start !important; }
+}
+
+/* ── Movie/Series grids ── */
+@media (max-width: 576px) {
+  .row-strip .movie-card { width: 120px !important; height: 180px !important; }
+  .card-title-text { font-size: 11px !important; }
+  .home-section-title { font-size: 17px !important; }
+}
+
+/* ── Admin / Employee dashboard ── */
+@media (max-width: 768px) {
+  .container { padding-left: 12px !important; padding-right: 12px !important; }
+  /* Make admin tables scrollable */
+  .table-responsive-mobile { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* ── WatchMovie player ── */
+@media (max-width: 768px) {
+  .watch-video { max-height: 50vw !important; }
+}
+
+/* ── SeriesDetails episode cards ── */
+@media (max-width: 600px) {
+  .sd-ep-thumb { width: 80px !important; height: 50px !important; }
+  .sd-ep-card { padding: 10px 10px !important; gap: 10px !important; }
+  .sd-ep-title { font-size: 13px !important; }
+  .sd-season-tab { padding: 8px 12px !important; font-size: 13px !important; }
+  .sd-body { padding: 20px 4% 60px !important; }
+}
+
+/* ── Watchlist / Collections ── */
+@media (max-width: 600px) {
+  .sd-ep-list { gap: 6px !important; }
+}
+
+/* ── Subscription page ── */
+@media (max-width: 640px) {
+  .sub-plans-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ── General mobile padding ── */
+@media (max-width: 768px) {
+  .home-page { padding-bottom: 20px; }
+  .home-section { padding: 20px 0 4px !important; }
+  section { color: var(--text-primary); }
+}
+
+/* ════════════════════════════════════════
+   LIGHT MODE SPECIFIC OVERRIDES
+════════════════════════════════════════ */
+
+/* Poster cards — add border + shadow so they don't blend into bg */
+html.light-mode .movie-card {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.10) !important;
+  border: 1px solid rgba(0,0,0,0.08) !important;
+}
+
+/* Movie grid posters (Movies.jsx, TVSeries.jsx) */
+html.light-mode .col-6 img,
+html.light-mode .col-sm-4 img,
+html.light-mode .col-md-3 img,
+html.light-mode .col-lg-2 img {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+/* Watchlist collection cards */
+html.light-mode .col-6 img[alt],
+html.light-mode img[style*="borderRadius: 10"] {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+}
+
+/* Continue watching thumbnails */
+html.light-mode .home-page img {
+  box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+  border-radius: 10px;
+}
+
+/* Auth card — stronger contrast */
+html.light-mode .auth-card {
+  background: #ffffff !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08) !important;
+  border: 1px solid rgba(0,0,0,0.10) !important;
+}
+
+/* Admin/Employee dashboard panels */
+html.light-mode [style*="bg-surface"] {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+/* Dropdown search suggestions */
+html.light-mode .navbar-overlay .dropdown-menu,
+html.light-mode [style*="bg-surface"][style*="border-radius:12"] {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+}
+
+/* Offcanvas filter panel */
+html.light-mode .offcanvas {
+  box-shadow: -8px 0 32px rgba(0,0,0,0.15) !important;
+}
+
+/* Row arrow overlays — visible on light bg */
+html.light-mode .row-arrow-overlay {
+  color: var(--text-primary) !important;
+  background: none !important;
+}
+html.light-mode .row-arrow-overlay.left  { background: linear-gradient(to right, var(--row-arrow-grad), transparent) !important; }
+html.light-mode .row-arrow-overlay.right { background: linear-gradient(to left,  var(--row-arrow-grad), transparent) !important; }
+
+/* Episode cards in SeriesDetails */
+html.light-mode .sd-ep-card {
+  background: #ffffff !important;
+  border-color: rgba(0,0,0,0.10) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+html.light-mode .sd-ep-card:hover {
+  background: #f0f0f8 !important;
+  border-color: rgba(0,0,0,0.18) !important;
+}
+
+/* Watchlist tab buttons */
+html.light-mode button[style*="bg-surface"] {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Subscription plan cards */
+html.light-mode [style*="bg-surface"][style*="border-radius:16"] {
+  background: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10) !important;
+}
+
+/* Search live dropdown */
+html.light-mode [style*="rgba(0,0,0,0.4)"] {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;
+}
+
+/* Form controls — white bg, visible border */
+html.light-mode .form-control,
+html.light-mode .form-select {
+  background-color: #ffffff !important;
+  border-color: rgba(0,0,0,0.18) !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06) !important;
+}
+html.light-mode .form-control:focus,
+html.light-mode .form-select:focus {
+  background-color: #ffffff !important;
+  border-color: rgba(229,9,20,0.50) !important;
+  box-shadow: 0 0 0 0.2rem rgba(229,9,20,0.15), inset 0 1px 3px rgba(0,0,0,0.04) !important;
+}
+
+/* Profile selector avatars */
+html.light-mode img[style*="borderRadius:12"] {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+}
+
+/* Section/collection modals */
+html.light-mode [style*="bg-surface"][style*="border-radius:18"] {
+  background: #ffffff !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
+}

@@ -23,6 +23,8 @@ export default function EmployeeDashboard() {
   const [moviePoster,  setMoviePoster]  = useState(null);
   const [movieBanner,  setMovieBanner]  = useState(null);
   const [movieVideo,   setMovieVideo]   = useState(null);
+  const [movieVideoUrl,setMovieVideoUrl]= useState("");
+  const [epVideoUrl,   setEpVideoUrl]   = useState("");
   const [posterPrev,   setPosterPrev]   = useState(null);
   const [bannerPrev,   setBannerPrev]   = useState(null);
 
@@ -41,6 +43,11 @@ export default function EmployeeDashboard() {
   const [newSeasonNum,    setNewSeasonNum]     = useState("");
   const [epForm,          setEpForm]          = useState({ title:"", episodeNumber:"", duration:"" });
   const [epVideo,         setEpVideo]         = useState(null);
+  const [editEp,          setEditEp]          = useState(null);
+  const [editEpForm,      setEditEpForm]      = useState({title:"",description:"",duration:""});
+  const [editEpVideo,     setEditEpVideo]     = useState(null);
+  const [editEpVideoUrl,  setEditEpVideoUrl]  = useState("");
+  const [editEpSaving,    setEditEpSaving]    = useState(false);
 
   // ── manage ──
   const [allContent,  setAllContent]  = useState([]);
@@ -83,9 +90,10 @@ export default function EmployeeDashboard() {
     Object.entries(movieForm).forEach(([k,v]) => data.append(k,v));
     data.append("language",  empLang);
     data.append("genres",    JSON.stringify(selectedGenres));
-    data.append("poster",    moviePoster);
-    data.append("banner",    movieBanner);
-    data.append("video",     movieVideo);
+    if (moviePoster) data.append("poster", moviePoster);
+    if (movieBanner) data.append("banner", movieBanner);
+    if (movieVideo) data.append("video", movieVideo);
+    if (movieVideoUrl.trim()) data.append("videoUrl", movieVideoUrl.trim());
     try {
       await axios.post(`${API}/movies/upload/movie`, data, {
         onUploadProgress: e => setUploadProgress(Math.round((e.loaded/e.total)*100))
@@ -93,7 +101,7 @@ export default function EmployeeDashboard() {
       setUploadProgress(0);
       alert("Movie uploaded!");
       setMovieForm({ title:"", description:"", releaseYear:"", duration:"", rating:"", ageRating:"U", category:"Movie", trailerUrl:"" });
-      setSelectedGenres([]); setMoviePoster(null); setMovieBanner(null); setMovieVideo(null);
+      setSelectedGenres([]); setMoviePoster(null); setMovieBanner(null); setMovieVideo(null); setMovieVideoUrl("");
       setPosterPrev(null); setBannerPrev(null);
     } catch { setUploadProgress(0); alert("Upload failed"); }
   };
@@ -136,15 +144,41 @@ export default function EmployeeDashboard() {
     const data = new FormData();
     Object.entries(epForm).forEach(([k,v]) => data.append(k,v));
     if (epVideo) data.append("video", epVideo);
+    if (epVideoUrl.trim()) data.append("videoUrl", epVideoUrl.trim());
     try {
       await axios.post(`${API}/movies/${selectedSeries}/seasons/${selectedSeason}/episodes`, data, {
         onUploadProgress: e => setUploadProgress(Math.round((e.loaded/e.total)*100))
       });
       setUploadProgress(0);
       alert("Episode added!");
-      setEpForm({ title:"", episodeNumber:"", duration:"" }); setEpVideo(null);
+      setEpForm({ title:"", episodeNumber:"", duration:"" }); setEpVideo(null); setEpVideoUrl("");
       fetchSeriesDetail(selectedSeries);
     } catch { setUploadProgress(0); alert("Failed to add episode"); }
+  };
+
+  // ══ EDIT EPISODE ══
+  const openEditEp = (ep, seasonId) => {
+    setEditEp({ ep, seasonId });
+    setEditEpForm({ title:ep.title, description:ep.description||"", duration:ep.duration||"" });
+    setEditEpVideo(null); setEditEpVideoUrl(ep.videoUrl||"");
+  };
+
+  const saveEditEp = async () => {
+    if (!editEp) return;
+    setEditEpSaving(true);
+    const season = seriesDetail.seasons.find(s => s._id === editEp.seasonId);
+    const fd = new FormData();
+    fd.append("title", editEpForm.title);
+    fd.append("description", editEpForm.description);
+    fd.append("duration", editEpForm.duration);
+    if (editEpVideo) fd.append("video", editEpVideo);
+    else if (editEpVideoUrl.trim()) fd.append("videoUrl", editEpVideoUrl.trim());
+    try {
+      await axios.patch(`${API}/movies/${selectedSeries}/seasons/${season.seasonNumber}/episodes/${editEp.ep.episodeNumber}`, fd);
+      await fetchSeriesDetail(selectedSeries);
+      setEditEp(null);
+    } catch { alert("Failed to update episode"); }
+    setEditEpSaving(false);
   };
 
   // ══ DELETE EPISODE ══
@@ -299,8 +333,15 @@ export default function EmployeeDashboard() {
               </div>
               <div>
                 <label style={labelStyle}>Video</label>
-                <input type="file" accept="video/*" style={inputStyle} onChange={e=>setMovieVideo(e.target.files[0])} />
-                {movieVideo && <p style={{ fontSize:12, color:"var(--text-muted)", marginTop:6 }}>✓ {movieVideo.name}</p>}
+                <input type="file" accept="video/*" style={inputStyle} onChange={e=>{setMovieVideo(e.target.files[0]); setMovieVideoUrl("");}} disabled={!!movieVideoUrl} />
+                {movieVideo && <p style={{ fontSize:12, color:"var(--text-muted)", marginTop:4 }}>✓ {movieVideo.name}</p>}
+                <div style={{display:"flex",alignItems:"center",gap:8,margin:"8px 0"}}>
+                  <hr style={{flex:1,borderColor:"var(--border)",margin:0}}/>
+                  <span style={{fontSize:11,color:"var(--text-muted)",fontWeight:600}}>OR</span>
+                  <hr style={{flex:1,borderColor:"var(--border)",margin:0}}/>
+                </div>
+                <input style={inputStyle} placeholder="Paste Cloudinary video URL" value={movieVideoUrl} onChange={e=>{setMovieVideoUrl(e.target.value); if(e.target.value) setMovieVideo(null);}} disabled={!!movieVideo} />
+                {movieVideoUrl && <p style={{fontSize:12,color:"#4ade80",marginTop:4}}>✓ Using URL</p>}
               </div>
             </div>
             {uploadProgress > 0 && (
@@ -446,6 +487,7 @@ export default function EmployeeDashboard() {
                             <span style={{ fontSize:12, fontWeight:700, color:"var(--accent)" }}>E{ep.episodeNumber}</span>
                             <span style={{ flex:1, fontSize:13 }}>{ep.title}</span>
                             <span style={{ fontSize:12, color:"var(--text-muted)" }}>{ep.duration}</span>
+                            <button onClick={()=>openEditEp(ep, selectedSeason)} style={{ background:"rgba(99,102,241,0.15)", color:"#818cf8", border:"none", borderRadius:6, padding:"3px 8px", fontSize:12, cursor:"pointer", fontWeight:600 }}>✏</button>
                             <button onClick={()=>handleDeleteEpisode(selectedSeason, ep.episodeNumber)} style={{ background:"none", border:"none", color:"var(--accent)", cursor:"pointer", fontSize:16 }}>🗑</button>
                           </div>
                         ))}
@@ -458,7 +500,14 @@ export default function EmployeeDashboard() {
                             <input style={inputStyle} type="number" placeholder="Ep #" value={epForm.episodeNumber} onChange={e=>setEpForm({...epForm,episodeNumber:e.target.value})} />
                             <input style={inputStyle} placeholder="Duration" value={epForm.duration} onChange={e=>setEpForm({...epForm,duration:e.target.value})} />
                           </div>
-                          <input type="file" accept="video/*" style={{...inputStyle, marginBottom:10}} onChange={e=>setEpVideo(e.target.files[0])} />
+                          <input type="file" accept="video/*" style={{...inputStyle, marginBottom:6}} onChange={e=>{setEpVideo(e.target.files[0]); setEpVideoUrl("");}} disabled={!!epVideoUrl} />
+                          <div style={{display:"flex",alignItems:"center",gap:8,margin:"6px 0"}}>
+                            <hr style={{flex:1,borderColor:"var(--border)",margin:0}}/>
+                            <span style={{fontSize:11,color:"var(--text-muted)",fontWeight:600}}>OR</span>
+                            <hr style={{flex:1,borderColor:"var(--border)",margin:0}}/>
+                          </div>
+                          <input style={{...inputStyle,marginBottom:10}} placeholder="Paste Cloudinary video URL" value={epVideoUrl} onChange={e=>{setEpVideoUrl(e.target.value); if(e.target.value) setEpVideo(null);}} disabled={!!epVideo} />
+                          {epVideoUrl && <p style={{fontSize:12,color:"#4ade80",margin:"0 0 10px"}}>✓ Using URL</p>}
                           {uploadProgress > 0 && (
                             <div style={{marginBottom:8}}>
                               <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"var(--text-muted)",marginBottom:3}}><span>Uploading…</span><span>{uploadProgress}%</span></div>
