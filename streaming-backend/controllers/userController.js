@@ -200,3 +200,98 @@ exports.deleteCollection = async (req, res) => {
     res.json(profile.collections);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
+
+// ─── RECOMMENDATIONS ──────────────────────────────────────────────────────
+// GET /users/:id/profiles/:profileId/recommendations
+// Content-based: looks at continue watching + watchlist genres,
+// ranks movies by genre overlap and rating, excludes already-watched content.
+exports.getRecommendations = async (req, res) => {
+  try {
+    const Movie = require("../models/Movie");
+    const user  = await User.findById(req.params.id)
+      .populate("profiles.collections.movies");
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const profile = user.profiles.id(req.params.profileId);
+    if (!profile) return res.status(404).json({ error: "Profile not found" });
+
+    // ── 1. Collect all movie IDs the profile has interacted with ──
+    const watchedIds = new Set();
+
+    // From continue watching (stored in localStorage on client — passed as query)
+    const continueIds = req.query.watched ? req.query.watched.split(",") : [];
+    continueIds.forEach(id => watchedIds.add(id));
+
+    // From all watchlist collections
+    const collectionMovies = profile.collections.flatMap(col => col.movies || []);
+    collectionMovies.forEach(m => watchedIds.add((m._id || m).toString()));
+
+    // ── 2. Count genre frequency from interacted content ──
+    let interactedMovies = [];
+    if (collectionMovies.length > 0) {
+      interactedMovies = await Movie.find({
+        _id: { $in: collectionMovies.map(m => m._id || m) }
+      });
+    }
+
+    // Also fetch continue watching movies if IDs provided
+    if (continueIds.length > 0) {
+      const cwMovies = await Movie.find({ _id: { $in: continueIds } });
+      interactedMovies.push(...cwMovies);
+    }
+
+    // Build genre frequency map
+    const genreCount = {};
+    interactedMovies.forEach(m => {
+      (m.genres || []).forEach(g => {
+        genreCount[g] = (genreCount[g] || 0) + 1;
+      });
+    });
+
+    const topGenres = Object.entries(genreCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([genre]) => genre);
+
+    // ── 3. Age rating filter ──
+    const AGE_ORDER = ["U", "U/A 7+", "U/A 13+", "U/A 16+", "R", "A"];
+    const maxIdx    = AGE_ORDER.indexOf(profile.ageRating || "A");
+
+    // ── 4. Cold start — no history → return top rated ──
+    if (topGenres.length === 0) {
+      const fallback = await Movie.find({})
+        .sort({ rating: -1 })
+        .limit(20);
+      const filtered = fallback.filter(m => {
+        const idx = AGE_ORDER.indexOf(m.ageRating || "U");
+        return idx <= maxIdx;
+      });
+      return res.json({ genres: [], movies: filtered.slice(0, 12) });
+    }
+
+    // ── 5. Fetch all movies matching top genres, exclude watched ──
+    const candidates = await Movie.find({
+      genres: { $in: topGenres },
+      _id:    { $nin: [...watchedIds] }
+    });
+
+    // ── 6. Score each candidate by genre overlap + rating ──
+    const scored = candidates
+      .filter(m => {
+        const idx = AGE_ORDER.indexOf(m.ageRating || "U");
+        return idx <= maxIdx;
+      })
+      .map(m => {
+        const overlap = (m.genres || []).filter(g => topGenres.includes(g)).length;
+        const score   = overlap * 10 + (m.rating || 0);
+        return { movie: m, score };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 16)
+      .map(x => x.movie);
+
+    res.json({ genres: topGenres, movies: scored });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

@@ -122,40 +122,65 @@ exports.updateMovie = async (req, res) => {
     if (!movie) return res.status(404).json({ error: "Not found" });
 
     let { title, description, releaseYear, duration, rating, ageRating, genres, language, trailerUrl } = req.body;
-    if (Array.isArray(trailerUrl)) trailerUrl = trailerUrl[0];
-    if (title)       movie.title       = title;
-    if (description !== undefined) movie.description = description;
-    if (releaseYear) movie.releaseYear = Number(releaseYear);
-    if (duration)    movie.duration    = duration;
-    if (rating)      movie.rating      = Number(rating);
-    if (language)    movie.language    = language;
-    if (trailerUrl !== undefined) movie.trailerUrl = trailerUrl;
-    if (ageRating)   movie.ageRating   = ageRating;
-    if (genres)      movie.genres      = JSON.parse(genres);
 
+    // Handle arrays from multipart
+    if (Array.isArray(trailerUrl))  trailerUrl  = trailerUrl[0];
+    if (Array.isArray(title))       title       = title[0];
+    if (Array.isArray(description)) description = description[0];
+    if (Array.isArray(releaseYear)) releaseYear = releaseYear[0];
+    if (Array.isArray(duration))    duration    = duration[0];
+    if (Array.isArray(rating))      rating      = rating[0];
+    if (Array.isArray(ageRating))   ageRating   = ageRating[0];
+    if (Array.isArray(language))    language    = language[0];
+
+    if (title)                     movie.title       = title;
+    if (description !== undefined) movie.description = description;
+    if (releaseYear)               movie.releaseYear = Number(releaseYear);
+    if (duration)                  movie.duration    = duration;
+    if (rating)                    movie.rating      = Number(rating);
+    if (language)                  movie.language    = language;
+    if (trailerUrl !== undefined)  movie.trailerUrl  = trailerUrl;
+    if (ageRating)                 movie.ageRating   = ageRating;
+
+    // Parse genres safely — handle string, array, or undefined
+    if (genres) {
+      try {
+        movie.genres = Array.isArray(genres) ? genres : JSON.parse(genres);
+      } catch {
+        movie.genres = typeof genres === "string" ? [genres] : [];
+      }
+    }
+
+    // Handle file uploads — use updated language/title for folder path
     if (req.files?.poster || req.files?.banner || req.files?.video) {
       const cat    = movie.category === "Series" ? "Series" : "Movies";
       const lang   = slugify(movie.language || "Unknown");
       const name   = slugify(movie.title);
       const folder = `${cat}/${lang}/${name}`;
+
       if (req.files?.poster) {
-        const up = await uploadToCloudinary(req.files.poster[0].path, { folder });
+        console.log("Uploading poster for:", movie.title);
+        const up     = await uploadToCloudinary(req.files.poster[0].path, { folder });
         movie.poster = up.secure_url;
       }
       if (req.files?.banner) {
-        const up = await uploadToCloudinary(req.files.banner[0].path, { folder });
+        console.log("Uploading banner for:", movie.title);
+        const up     = await uploadToCloudinary(req.files.banner[0].path, { folder });
         movie.banner = up.secure_url;
       }
       if (req.files?.video) {
-        const up = await uploadToCloudinary(req.files.video[0].path, { resource_type: "video", folder });
+        console.log("Uploading video for:", movie.title);
+        const up       = await uploadToCloudinary(req.files.video[0].path, { resource_type: "video", folder });
         movie.videoUrl = up.secure_url;
-        // Don't override trailerUrl — keep them separate
       }
     }
 
     await movie.save();
     res.json({ message: "Updated successfully", movie });
-  } catch (err) { console.error(err); res.status(500).json({ error: "Update failed: " + err.message }); }
+  } catch (err) {
+    console.error("updateMovie error:", err);
+    res.status(500).json({ error: "Update failed: " + err.message });
+  }
 };
 
 exports.deleteMovie = async (req, res) => {

@@ -20,6 +20,8 @@ export default function Home() {
   const [sections,         setSections]         = useState([]);
   const [continueWatching, setContinueWatching] = useState([]);
   const [currentSlide,     setCurrentSlide]     = useState(0);
+  const [recommendations,  setRecommendations]  = useState([]);
+  const [recGenres,        setRecGenres]        = useState([]);
   const rowRefs = useRef({});
 
   /* ── Fetch sections from DB ── */
@@ -48,6 +50,31 @@ export default function Home() {
         ? `apexplay_continue_${user._id}_${profile._id}`
         : `apexplay_continue_${user._id}`;
       setContinueWatching(JSON.parse(localStorage.getItem(key)) || []);
+    } catch { /* ignore */ }
+  }, []);
+
+  /* ── Fetch recommendations ── */
+  useEffect(() => {
+    try {
+      const user    = JSON.parse(localStorage.getItem("apexplay_user"));
+      const profile = JSON.parse(localStorage.getItem("apexplay_profile") || "null");
+      if (!user || !profile) return;
+
+      // Pass continue watching IDs so backend can factor them in
+      const key      = `apexplay_continue_${user._id}_${profile._id}`;
+      const cwList   = JSON.parse(localStorage.getItem(key) || "[]");
+      const cwIds    = cwList.map(m => m._id).filter(Boolean).join(",");
+      const params   = cwIds ? `?watched=${cwIds}` : "";
+
+      fetch(`http://localhost:5000/users/${user._id}/profiles/${profile._id}/recommendations${params}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.movies) {
+            setRecommendations(data.movies);
+            setRecGenres(data.genres || []);
+          }
+        })
+        .catch(() => {});
     } catch { /* ignore */ }
   }, []);
 
@@ -143,6 +170,35 @@ export default function Home() {
                     {item.season && <p style={{ fontSize:11, color:"var(--text-muted)", margin:0 }}>S{item.season} E{item.ep}</p>}
                   </div>
                 ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ══ RECOMMENDATIONS ══ */}
+        {recommendations.length > 0 && (
+          <section className="home-section">
+            <div className="container">
+              <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:16 }}>
+                <h4 className="home-section-title" style={{ margin:0 }}>
+                  ✨ Recommended For You
+                </h4>
+                {recGenres.length > 0 && (
+                  <span style={{ fontSize:12, color:"var(--text-muted)", fontFamily:"Outfit" }}>
+                    based on {recGenres.slice(0,3).join(", ")}
+                  </span>
+                )}
+              </div>
+              <div className="row-strip">
+                <button className="row-arrow-overlay left" onClick={() => scrollRow("rec", -1)}>‹</button>
+                <div className="d-flex flex-row flex-nowrap overflow-auto hide-scrollbar pb-2"
+                  ref={el => rowRefs.current["rec"] = el}>
+                  {recommendations.map(item => (
+                    <MovieCard key={item._id} item={item}
+                      onClick={() => navigate(item.category === "Series" ? `/series/${item._id}` : `/movie/${item._id}`)} />
+                  ))}
+                </div>
+                <button className="row-arrow-overlay right" onClick={() => scrollRow("rec", 1)}>›</button>
               </div>
             </div>
           </section>

@@ -7,6 +7,7 @@ const {
   getCollections, createCollection,
   addToCollection, removeFromCollection, deleteCollection,
   updateScreenTime,
+  getRecommendations,
 } = require("../controllers/userController");
 
 router.get   ("/",                 getUsers);
@@ -33,5 +34,7 @@ router.post  ("/:id/profiles/:profileId/collections",                           
 router.post  ("/:id/profiles/:profileId/collections/:collectionId/movies",          addToCollection);
 router.delete("/:id/profiles/:profileId/collections/:collectionId/movies/:movieId", removeFromCollection);
 router.delete("/:id/profiles/:profileId/collections/:collectionId",                 deleteCollection);
+
+router.get("/:id/profiles/:profileId/recommendations", getRecommendations);
 
 module.exports = router;

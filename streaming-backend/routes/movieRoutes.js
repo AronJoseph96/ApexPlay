@@ -15,6 +15,7 @@ const {
   deleteEpisode,
   deleteSeason,
   deleteMovie,
+  updateMovie,
 } = require("../controllers/movieController");
 
 
@@ -81,6 +82,16 @@ router.delete(
 /* ─────────────────────────────────────
    SINGLE ITEM — MUST be last
 ───────────────────────────────────── */
+router.patch(
+  "/:id",
+  upload.fields([
+    { name: "poster", maxCount: 1 },
+    { name: "banner", maxCount: 1 },
+    { name: "video",  maxCount: 1 },
+  ]),
+  updateMovie
+);
+
 router.get("/:id", getMovieById);
 router.delete("/:id", deleteMovie);
 
